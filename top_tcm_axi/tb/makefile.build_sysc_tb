@@ -23,15 +23,18 @@ INCLUDE_PATH += $(SYSTEMC_HOME)/include
 LIB_PATH     ?=
 LIB_PATH     += ./lib 
 LIB_PATH     += ../../isa_sim
-LIBS          = -lisa_sim -lsyscverilated -lelf -lbfd
+LIBS          = -lisa_sim -lsyscverilated -lelf
 
 # Flags
 CFLAGS       ?= -fpic -O2
+CFLAGS       += -std=c++17
 CFLAGS       += $(patsubst %,-I%,$(INCLUDE_PATH))
 CFLAGS       += -DVM_TRACE=1
+CFLAGS       += -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include
 LDFLAGS      ?= -O2
-LDFLAGS      += -L$(SYSTEMC_HOME)/lib-linux64 
+LDFLAGS      += -L$(SYSTEMC_HOME)/lib
 LDFLAGS      += $(patsubst %,-L%,$(LIB_PATH))
+LDFLAGS      += -L/opt/homebrew/opt/libelf/lib -L/opt/homebrew/opt/binutils/lib
 
 EXTRA_CLEAN_FILES ?=
 
@@ -56,7 +59,7 @@ $(OBJ_DIR) $(EXE_DIR):
 $(foreach src,$(SRC),$(eval $(call template_c,$(src))))
 
 $(EXE_DIR)$(TARGET): $(OBJ) | $(EXE_DIR) 
-	g++ $(LDFLAGS) $(OBJ) -o $@ -lsystemc $(LIBS)
+	g++ $(LDFLAGS) $(OBJ) -o $@ $(LIBS) -lsystemc
 
 clean:
 	rm -rf $(EXE_DIR) $(OBJ_DIR) $(EXTRA_CLEAN_FILES)

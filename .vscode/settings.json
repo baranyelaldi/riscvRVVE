@@ -1,0 +1,15 @@
+{
+  "C_Cpp.default.configurationProvider": "",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}"
+  ],
+  "C_Cpp.errorSquiggles": "enabled",
+  "files.associations": {
+    "makefile*": "makefile",
+    "*.h": "cpp",
+    "*.v": "verilog"
+  },
+  "verilog.linting.linter": "verilator",
+  "verilog.linting.verilator.arguments": "-f ${workspaceFolder}/.vscode/verilator_config.vlt"
+}

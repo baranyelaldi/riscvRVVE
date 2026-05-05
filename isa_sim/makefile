@@ -16,9 +16,11 @@ CFLAGS	    = -O2 -fPIC
 ifeq ($(MMU), yes)
 CFLAGS     += -DCONFIG_MMU
 endif
+CFLAGS     += -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include
 
 LDFLAGS     = 
-LIBS        = -lelf -lbfd
+LDFLAGS    += -L/opt/homebrew/opt/libelf/lib -L/opt/homebrew/opt/binutils/lib
+LIBS        = -lelf
 
 # Source Files
 SRC_DIR    = .
@@ -61,7 +63,7 @@ $(TARGET): $(OBJ) makefile
 	g++ $(LDFLAGS) $(OBJ) $(LIBS) -o $@
 
 lib: $(LIB_OBJ)
-	g++ -shared -o $(TARGET_LIB) $(LIB_OBJ)
+	ar rcs $(TARGET_LIB) $(LIB_OBJ)
 
 clean:
 	-rm -rf $(OBJ_DIR) $(TARGET) $(TARGET_LIB)

@@ -35,6 +35,14 @@
 static testbench *tb = NULL;
 
 //--------------------------------------------------------------------
+// sc_time_stamp: Verilator legacy timestamp callback
+//--------------------------------------------------------------------
+double sc_time_stamp(void)
+{
+    return sc_core::sc_time_stamp().to_double();
+}
+
+//--------------------------------------------------------------------
 // assert_handler: Handling of sc_assert
 //--------------------------------------------------------------------
 static void assert_handler(const sc_report& rep, const sc_actions& actions)

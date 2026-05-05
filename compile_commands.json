@@ -1,0 +1,42 @@
+[
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim",
+    "command": "/usr/bin/clang++ -std=c++17 -O2 -fPIC -DCONFIG_MMU -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c cosim_api.cpp -o obj/riscv-sim/cosim_api.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim/cosim_api.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim",
+    "command": "/usr/bin/clang++ -std=c++17 -O2 -fPIC -DCONFIG_MMU -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c elf_load.cpp -o obj/riscv-sim/elf_load.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim/elf_load.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim",
+    "command": "/usr/bin/clang++ -std=c++17 -O2 -fPIC -DCONFIG_MMU -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c main.cpp -o obj/riscv-sim/main.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim/main.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim",
+    "command": "/usr/bin/clang++ -std=c++17 -O2 -fPIC -DCONFIG_MMU -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c riscv.cpp -o obj/riscv-sim/riscv.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim/riscv.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim",
+    "command": "/usr/bin/clang++ -std=c++17 -O2 -fPIC -DCONFIG_MMU -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c riscv_inst_dump.cpp -o obj/riscv-sim/riscv_inst_dump.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim/riscv_inst_dump.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim",
+    "command": "/usr/bin/clang++ -std=c++17 -O2 -fPIC -DCONFIG_MMU -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c riscv_main.cpp -o obj/riscv-sim/riscv_main.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/isa_sim/riscv_main.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/top_tcm_axi/tb",
+    "command": "/usr/bin/clang++ -std=c++17 -fpic -O2 -DVM_TRACE=1 -DCONFIG_MMU -DVL_USER_FINISH=1 -DSC_ALLOW_DEPRECATED_IEEE_API -I. -I./verilated -I../../isa_sim -I/opt/homebrew/opt/verilator/share/verilator/include -I/opt/homebrew/opt/verilator/share/verilator/include/vltstd -I/opt/homebrew/opt/systemc/include -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c main.cpp -o obj/main.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/top_tcm_axi/tb/main.cpp"
+  },
+  {
+    "directory": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/top_tcm_axi/tb",
+    "command": "/usr/bin/clang++ -std=c++17 -fpic -O2 -DVM_TRACE=1 -DCONFIG_MMU -DVL_USER_FINISH=1 -DSC_ALLOW_DEPRECATED_IEEE_API -I. -I./verilated -I../../isa_sim -I/opt/homebrew/opt/verilator/share/verilator/include -I/opt/homebrew/opt/verilator/share/verilator/include/vltstd -I/opt/homebrew/opt/systemc/include -I/opt/homebrew/opt/libelf/include/libelf -I/opt/homebrew/opt/libelf/include -I/opt/homebrew/opt/binutils/include -c riscv_tcm_top_rtl.cpp -o obj/riscv_tcm_top_rtl.o",
+    "file": "/Users/baranyelaldi/Documents/Projects/riscvRVVE/top_tcm_axi/tb/riscv_tcm_top_rtl.cpp"
+  }
+]

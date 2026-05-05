@@ -10,7 +10,8 @@
 
 #include "riscv_tcm_top_rtl.h"
 #include "Vriscv_tcm_top.h"
-#include "Vriscv_tcm_top__Syms.h"
+#include "Vriscv_tcm_top_riscv_tcm_top.h"
+#include "Vriscv_tcm_top_tcm_mem.h"
 
 #include "verilated.h"
 #include "verilated_vcd_sc.h"
@@ -106,14 +107,14 @@ public:
     //-----------------------------------------------------------------
     void write(uint32_t addr, uint8_t data)
     {
-        m_dut->m_rtl->__VlSymsp->TOP__v__u_tcm.write(addr, data);
+        m_dut->m_rtl->riscv_tcm_top->u_tcm->write(addr, data);
     }
     //-----------------------------------------------------------------
     // write: Read byte from memory
     //-----------------------------------------------------------------
     uint8_t read(uint32_t addr)
     {
-        return m_dut->m_rtl->__VlSymsp->TOP__v__u_tcm.read(addr);
+        return m_dut->m_rtl->riscv_tcm_top->u_tcm->read(addr);
     }
     //-----------------------------------------------------------------
     // step: Execute 1 clock cycle

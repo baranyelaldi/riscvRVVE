@@ -1,0 +1,32 @@
+{
+  "configurations": [
+    {
+      "name": "macOS Homebrew",
+      "includePath": [
+        "${workspaceFolder}/isa_sim",
+        "${workspaceFolder}/top_tcm_axi/tb",
+        "${workspaceFolder}/top_tcm_axi/tb/verilated",
+        "${workspaceFolder}/top_tcm_axi/src_v",
+        "${workspaceFolder}/core/riscv",
+        "/opt/homebrew/opt/systemc/include",
+        "/opt/homebrew/opt/verilator/share/verilator/include",
+        "/opt/homebrew/opt/verilator/share/verilator/include/vltstd",
+        "/opt/homebrew/opt/libelf/include/libelf",
+        "/opt/homebrew/opt/libelf/include",
+        "/opt/homebrew/opt/binutils/include"
+      ],
+      "compileCommands": "${workspaceFolder}/compile_commands.json",
+      "defines": [
+        "CONFIG_MMU",
+        "VM_TRACE=1",
+        "VL_USER_FINISH=1",
+        "SC_ALLOW_DEPRECATED_IEEE_API"
+      ],
+      "compilerPath": "/usr/bin/clang++",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "macos-clang-arm64"
+    }
+  ],
+  "version": 4
+}

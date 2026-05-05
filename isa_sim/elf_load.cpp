@@ -45,7 +45,6 @@
 #include <libelf.h>
 #include <fcntl.h>
 #include <gelf.h>
-#include <bfd.h>
 
 #include "elf_load.h"
 
@@ -134,38 +133,54 @@ int elf_load(const char *filename, cb_mem_create fn_create, cb_mem_load fn_load,
 //-----------------------------------------------------------------
 long elf_get_symbol(const char *filename, const char *symname)
 {
-    bfd *ibfd;
-    asymbol **symtab;
-    long nsize, nsyms, i;
-    symbol_info syminfo;
-    char **matching;
+    int fd;
+    Elf *e;
+    Elf_Scn *scn = NULL;
 
-    bfd_init();
-    ibfd = bfd_openr(filename, NULL);
+    if (elf_version(EV_CURRENT) == EV_NONE)
+        return -1;
 
-    if (ibfd == NULL) 
+    if ((fd = open(filename, O_RDONLY, 0)) < 0)
+        return -1;
+
+    if ((e = elf_begin(fd, ELF_C_READ, NULL)) == NULL)
     {
-        printf("bfd_openr error\n");
+        close(fd);
         return -1;
     }
 
-    if (!bfd_check_format_matches(ibfd, bfd_object, &matching)) 
+    while ((scn = elf_nextscn(e, scn)) != NULL)
     {
-        printf("format_matches\n");
-        return -1;
-    }
+        GElf_Shdr shdr;
+        if (gelf_getshdr(scn, &shdr) == NULL)
+            continue;
 
-    nsize = bfd_get_symtab_upper_bound (ibfd);
-    symtab = (asymbol **)malloc(nsize);
-    nsyms = bfd_canonicalize_symtab(ibfd, symtab);
+        if (shdr.sh_type != SHT_SYMTAB && shdr.sh_type != SHT_DYNSYM)
+            continue;
 
-    for (i = 0; i < nsyms; i++) {
-        if (strcmp(symtab[i]->name, symname) == 0) {
-            bfd_symbol_info(symtab[i], &syminfo);
-            return (long) syminfo.value;
+        Elf_Data *data = elf_getdata(scn, NULL);
+        if (!data || shdr.sh_entsize == 0)
+            continue;
+
+        size_t count = shdr.sh_size / shdr.sh_entsize;
+        for (size_t i = 0; i < count; i++)
+        {
+            GElf_Sym sym;
+            if (gelf_getsym(data, (int)i, &sym) == NULL)
+                continue;
+
+            const char *name = elf_strptr(e, shdr.sh_link, sym.st_name);
+            if (name && strcmp(name, symname) == 0)
+            {
+                long value = (long)sym.st_value;
+                elf_end(e);
+                close(fd);
+                return value;
+            }
         }
     }
 
-    bfd_close(ibfd);
+    elf_end(e);
+    close(fd);
     return -1;
 }

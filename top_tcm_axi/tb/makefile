@@ -1,8 +1,10 @@
 ###############################################################################
 ## Tool paths
 ###############################################################################
-VERILATOR_SRC ?= /usr/share/verilator/include
-SYSTEMC_HOME  ?= /usr/local/systemc-2.3.1
+VERILATOR_SRC ?= /opt/homebrew/opt/verilator/share/verilator/include
+SYSTEMC_HOME  ?= /opt/homebrew/opt/systemc
+SYSTEMC_INCLUDE ?= $(SYSTEMC_HOME)/include
+SYSTEMC_LIBDIR  ?= $(SYSTEMC_HOME)/lib
 
 TEST_IMAGE ?= ../../isa_sim/images/basic.elf
 
@@ -10,10 +12,14 @@ CORE       ?= riscv
 
 export VERILATOR_SRC
 export SYSTEMC_HOME
+export SYSTEMC_INCLUDE
+export SYSTEMC_LIBDIR
 
 ###############################################################################
 ## Makefile
 ###############################################################################
+.PHONY: all build clean run
+
 all: build
 
 build:

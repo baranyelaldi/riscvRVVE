@@ -1,0 +1,4 @@
+-Icore/riscv
+-Itop_tcm_axi/src_v
+-Itop_cache_axi/src_v
+-Wno-fatal

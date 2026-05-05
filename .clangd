@@ -1,0 +1,16 @@
+CompileFlags:
+  Add:
+    - -std=c++17
+    - -DCONFIG_MMU
+    - -DVM_TRACE=1
+    - -DVL_USER_FINISH=1
+    - -DSC_ALLOW_DEPRECATED_IEEE_API
+    - -Iisa_sim
+    - -Itop_tcm_axi/tb
+    - -Itop_tcm_axi/tb/verilated
+    - -I/opt/homebrew/opt/systemc/include
+    - -I/opt/homebrew/opt/verilator/share/verilator/include
+    - -I/opt/homebrew/opt/verilator/share/verilator/include/vltstd
+    - -I/opt/homebrew/opt/libelf/include/libelf
+    - -I/opt/homebrew/opt/libelf/include
+    - -I/opt/homebrew/opt/binutils/include

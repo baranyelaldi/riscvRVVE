@@ -15,7 +15,7 @@ RTL_INCLUDE       = ../../core/$(CORE)
 
 # Verilator options
 VERILATE_PARAMS  ?= --trace
-VERILATOR_OPTS   ?= --pins-sc-uint
+VERILATOR_OPTS   ?= --pins-sc-uint -Wno-fatal
 
 OLDER_VERILATOR := $(shell verilator --l2-name v 2>&1 | grep "Invalid Option" | wc -l)
 

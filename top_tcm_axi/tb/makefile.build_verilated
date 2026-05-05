@@ -19,17 +19,17 @@ INCLUDE_PATH += $(VERILATOR_SRC)/vltstd
 
 # Flags
 CFLAGS       ?=
+CFLAGS       += -std=c++17
 CFLAGS       += -DVM_TRACE=1 -DVL_USER_FINISH=1
 CFLAGS       += -fpic
 CFLAGS       += $(patsubst %,-I%,$(INCLUDE_PATH))
 CFLAGS       += $(EXTRA_CFLAGS)
 
-LIB_OPT      ?= $(SYSTEMC_HOME)/lib-linux64/libsystemc.a
-
 # SRC / Object list
 src2obj       = $(OBJ_DIR)$(patsubst %$(suffix $(1)),%.o,$(notdir $(1)))
 SRC_LIST      = $(foreach src,$(SRC_DIR),$(wildcard $(src)/*.cpp))
 SRC_LIST     += $(VERILATOR_SRC)/verilated.cpp
+SRC_LIST     += $(VERILATOR_SRC)/verilated_threads.cpp
 SRC_LIST     += $(VERILATOR_SRC)/verilated_vcd_c.cpp
 SRC_LIST     += $(VERILATOR_SRC)/verilated_vcd_sc.cpp
 
@@ -51,7 +51,7 @@ $(OBJ_DIR) $(LIB_DIR):
 $(foreach src,$(SRC_LIST),$(eval $(call template_c,$(src))))
 
 $(LIB_DIR)$(LIBNAME): $(OBJ) | $(LIB_DIR) 
-	g++ -shared -o $(LIB_DIR)$(LIBNAME) $(LIB_OPT) $(OBJ)
+	ar rcs $(LIB_DIR)$(LIBNAME) $(OBJ)
 
 clean:
 	rm -rf $(LIB_DIR) $(OBJ_DIR)
