@@ -1,1 +1,10 @@
 paper_docs
+isa_sim/libisa_sim.a
+isa_sim/obj/
+top_tcm_axi/tb/build/
+top_tcm_axi/tb/build.log
+top_tcm_axi/tb/lib/
+top_tcm_axi/tb/obj/
+top_tcm_axi/tb/obj_verilated/
+top_tcm_axi/tb/verilated/
+top_tcm_axi/tb/*.vcd
