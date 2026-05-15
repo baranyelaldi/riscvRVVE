@@ -1,0 +1,163 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Curated layout for RVVE migration debugging — grouped by pipeline stage.
+[*] Launch as: gtkwave verilator.gtkw   (NOT verilator.vcd)
+[*] Reload (Ctrl-Shift-R) after each ./build/test.x run.
+[*]
+[dumpfile] "/home/emo/projects/riscvRVVE/top_tcm_axi/tb/verilator.vcd"
+[savefile] "/home/emo/projects/riscvRVVE/top_tcm_axi/tb/verilator.gtkw"
+[timestart] 0
+[size] 1427 752
+[pos] -352 24
+*-5.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[treeopen] tb.DUT.
+[treeopen] tb.DUT.Vriscv_tcm_top.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_fetch.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_decode.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.u_alu.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_tcm.
+[sst_width] 320
+[signals_width] 280
+[sst_expanded] 1
+[sst_vpaned_height] 360
+@800200
+-CLOCK_RESET
+@28
+tb.DUT.Vriscv_tcm_top.v.clk_i
+tb.DUT.Vriscv_tcm_top.v.rst_i
+tb.DUT.Vriscv_tcm_top.v.rst_cpu_i
+@1000200
+-CLOCK_RESET
+@800200
+-FETCH
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_fetch.fetch_pc_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_fetch.fetch_instr_o[31:0]
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_fetch.fetch_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_fetch.fetch_fault_fetch_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_fetch.fetch_fault_page_o
+@1000200
+-FETCH
+@800200
+-DECODE
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_dec_pc_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_dec_instr_w[31:0]
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_dec_valid_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_dec_accept_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_exec_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_lsu_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_mul_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_div_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_branch_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_csr_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_invalid_w
+@1000200
+-DECODE
+@800200
+-ISSUE
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.exec_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.lsu_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.csr_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.mul_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.div_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.branch_request_o
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_pc_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_opcode_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_rd_idx_o[4:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_ra_idx_o[4:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_rb_idx_o[4:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_ra_operand_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.opcode_rb_operand_o[31:0]
+@1000200
+-ISSUE
+@800200
+-EXECUTE_ALU
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.alu_func_r[3:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.alu_input_a_r[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.alu_input_b_r[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.u_alu.alu_a_i[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.u_alu.alu_b_i[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.u_alu.alu_p_o[31:0]
+@1000200
+-EXECUTE_ALU
+@800200
+-WRITEBACK
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.valid_wb_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.csr_wb_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.csr_write_wb_o
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.pc_wb_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.opcode_wb_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.rd_wb_o[4:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.result_wb_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.operand_ra_wb_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.operand_rb_wb_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_pipe_ctrl.exception_wb_o[5:0]
+@1000200
+-WRITEBACK
+@800200
+-REGISTERS
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x1_ra_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x2_sp_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x3_gp_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x5_t0_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x6_t1_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x7_t2_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x10_a0_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x11_a1_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x12_a2_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x13_a3_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x28_t3_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x29_t4_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x30_t5_w[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x31_t6_w[31:0]
+@1000200
+-REGISTERS
+@800200
+-MEMORY_LSU
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.mem_addr_o[31:0]
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.mem_rd_o
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.mem_wr_o[3:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.mem_data_wr_o[31:0]
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.writeback_valid_o
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.writeback_value_o[31:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.writeback_exception_o[5:0]
+@1000200
+-MEMORY_LSU
+@800200
+-CSR
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.csr_writeback_write_i
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.csr_writeback_waddr_i[11:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.csr_writeback_wdata_i[31:0]
+@28
+tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.take_interrupt_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.ifence_o
+@1000200
+-CSR
+[pattern_trace] 1
+[pattern_trace] 0
