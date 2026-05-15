@@ -6,12 +6,14 @@
 #   make run NAME.elf       # build (if stale) + run via testbench; opens GTKWave if not running
 #   make dump NAME.elf      # disassemble a previously built elf
 #   make clean NAME.{s,elf} # remove only this test's elf
+#   make build              # force rebuild of test.x after Verilog/tb edits
 #
 # Examples:
 #   make vadd.elf
 #   make run vadd.elf
 #   make dump addi.elf
 #   make clean vadd.s
+#   make build              # after editing anything under core/ or top_tcm_axi/
 
 ARCH    := rv32iv
 ABI     := ilp32
@@ -55,4 +57,12 @@ dump: $(ELF)
 clean:
 	rm -f $(ELF)
 
-.PHONY: run dump clean
+# Force a full Verilator + tb rebuild. Use after editing any .v file or any
+# tb source under top_tcm_axi/tb/. The upstream tb makefile's "build" target
+# collides with its own build/ directory, so we always use `make -B`.
+build:
+	cd $(TB_DIR) && env -u NAME SYSTEMC_HOME=/usr LIB_OPT= \
+	    EXTRA_CFLAGS="-Wno-error -L/usr/lib/x86_64-linux-gnu" \
+	    make -B
+
+.PHONY: run dump clean build

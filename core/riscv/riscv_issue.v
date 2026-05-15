@@ -413,7 +413,7 @@ begin
 end
 
 assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i;
-assign exec_opcode_valid_o  = opcode_issue_r;
+assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w;
 assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w;
 assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
