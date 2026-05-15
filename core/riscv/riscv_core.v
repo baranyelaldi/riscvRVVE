@@ -198,6 +198,7 @@ wire  [ 11:0]  csr_writeback_waddr_w;
 wire           branch_exec_is_jmp_w;
 wire           mmu_lsu_cacheable_w;
 wire           fetch_instr_csr_w;
+wire           fetch_instr_v_alu_w;
 wire           lsu_opcode_valid_w;
 wire  [ 31:0]  fetch_dec_instr_w;
 wire           csr_result_e1_write_w;
@@ -208,6 +209,7 @@ wire           mul_opcode_invalid_w;
 wire           fetch_instr_rd_valid_w;
 wire  [ 31:0]  mmu_lsu_data_rd_w;
 wire           exec_opcode_valid_w;
+wire           v_alu_opcode_valid_w;
 wire  [ 31:0]  writeback_mul_value_w;
 wire           mmu_lsu_flush_w;
 wire  [  4:0]  lsu_opcode_rb_idx_w;
@@ -285,6 +287,7 @@ u_decode
     ,.fetch_out_instr_mul_o(fetch_instr_mul_w)
     ,.fetch_out_instr_div_o(fetch_instr_div_w)
     ,.fetch_out_instr_csr_o(fetch_instr_csr_w)
+    ,.fetch_out_instr_v_alu_o(fetch_instr_v_alu_w)
     ,.fetch_out_instr_rd_valid_o(fetch_instr_rd_valid_w)
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
 );
@@ -519,6 +522,7 @@ u_issue
     ,.fetch_instr_mul_i(fetch_instr_mul_w)
     ,.fetch_instr_div_i(fetch_instr_div_w)
     ,.fetch_instr_csr_i(fetch_instr_csr_w)
+    ,.fetch_instr_v_alu_i(fetch_instr_v_alu_w)
     ,.fetch_instr_rd_valid_i(fetch_instr_rd_valid_w)
     ,.fetch_instr_invalid_i(fetch_instr_invalid_w)
     ,.branch_exec_request_i(branch_exec_request_w)
@@ -555,6 +559,7 @@ u_issue
     ,.branch_pc_o(branch_pc_w)
     ,.branch_priv_o(branch_priv_w)
     ,.exec_opcode_valid_o(exec_opcode_valid_w)
+    ,.v_alu_opcode_valid_o(v_alu_opcode_valid_w)
     ,.lsu_opcode_valid_o(lsu_opcode_valid_w)
     ,.csr_opcode_valid_o(csr_opcode_valid_w)
     ,.mul_opcode_valid_o(mul_opcode_valid_w)

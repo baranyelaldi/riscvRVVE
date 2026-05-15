@@ -54,11 +54,27 @@ module riscv_decoder
     ,output                       mul_o
     ,output                       div_o
     ,output                       csr_o
+    ,output                       v_alu_o
     ,output                       rd_valid_o
 );
 
+// Vector ALU instruction match (used by both invalid_w and v_alu_o)
+wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
+                    ((opcode_i & `INST_VADD_VV_MASK) == `INST_VADD_VV)        ||
+                    ((opcode_i & `INST_VADD_VX_MASK) == `INST_VADD_VX)        ||
+                    ((opcode_i & `INST_VMAXU_VV_MASK) == `INST_VMAXU_VV)      ||
+                    ((opcode_i & `INST_VMAXU_VX_MASK) == `INST_VMAXU_VX)      ||
+                    ((opcode_i & `INST_VMINU_VV_MASK) == `INST_VMINU_VV)      ||
+                    ((opcode_i & `INST_VMINU_VX_MASK) == `INST_VMINU_VX)      ||
+                    ((opcode_i & `INST_VMUL_VV_MASK) == `INST_VMUL_VV)        ||
+                    ((opcode_i & `INST_VREDSUM_VS_MASK) == `INST_VREDSUM_VS)  ||
+                    ((opcode_i & `INST_VRSUB_VI_MASK) == `INST_VRSUB_VI)      ||
+                    ((opcode_i & `INST_VRSUB_VX_MASK) == `INST_VRSUB_VX)      ||
+                    ((opcode_i & `INST_VSUB_VV_MASK) == `INST_VSUB_VV)        ||
+                    ((opcode_i & `INST_VSUB_VX_MASK) == `INST_VSUB_VX);
+
 // Invalid instruction
-wire invalid_w =    valid_i && 
+wire invalid_w =    valid_i &&
                    ~(((opcode_i & `INST_ANDI_MASK) == `INST_ANDI)             ||
                     ((opcode_i & `INST_ADDI_MASK) == `INST_ADDI)              ||
                     ((opcode_i & `INST_SLTI_MASK) == `INST_SLTI)              ||
@@ -117,7 +133,8 @@ wire invalid_w =    valid_i &&
                     (enable_muldiv_i && (opcode_i & `INST_DIV_MASK) == `INST_DIV)       ||
                     (enable_muldiv_i && (opcode_i & `INST_DIVU_MASK) == `INST_DIVU)     ||
                     (enable_muldiv_i && (opcode_i & `INST_REM_MASK) == `INST_REM)       ||
-                    (enable_muldiv_i && (opcode_i & `INST_REMU_MASK) == `INST_REMU));
+                    (enable_muldiv_i && (opcode_i & `INST_REMU_MASK) == `INST_REMU) ||
+                    v_alu_w);
 
 assign invalid_o = invalid_w;
 
@@ -232,5 +249,7 @@ assign csr_o =      ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)            ||
                     ((opcode_i & `INST_IFENCE_MASK) == `INST_IFENCE)          ||
                     ((opcode_i & `INST_SFENCE_MASK) == `INST_SFENCE)          ||
                     invalid_w || fetch_fault_i;
+
+assign v_alu_o = v_alu_w;
 
 endmodule

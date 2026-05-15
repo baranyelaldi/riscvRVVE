@@ -63,6 +63,7 @@ tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_mul_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_div_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_branch_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_csr_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_v_alu_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_invalid_w
 @1000200
 -DECODE
@@ -70,6 +71,7 @@ tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_invalid_w
 -ISSUE
 @28
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.exec_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.v_alu_opcode_valid_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.lsu_opcode_valid_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.csr_opcode_valid_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.mul_opcode_valid_o

@@ -68,6 +68,7 @@ module riscv_issue
     ,input           fetch_instr_mul_i
     ,input           fetch_instr_div_i
     ,input           fetch_instr_csr_i
+    ,input           fetch_instr_v_alu_i
     ,input           fetch_instr_rd_valid_i
     ,input           fetch_instr_invalid_i
     ,input           branch_exec_request_i
@@ -104,6 +105,7 @@ module riscv_issue
     ,output [ 31:0]  branch_pc_o
     ,output [  1:0]  branch_priv_o
     ,output          exec_opcode_valid_o
+    ,output          v_alu_opcode_valid_o
     ,output          lsu_opcode_valid_o
     ,output          csr_opcode_valid_o
     ,output          mul_opcode_valid_o
@@ -195,6 +197,7 @@ wire       issue_branch_w   = fetch_instr_branch_i;
 wire       issue_mul_w      = fetch_instr_mul_i;
 wire       issue_div_w      = fetch_instr_div_i;
 wire       issue_csr_w      = fetch_instr_csr_i;
+wire       issue_v_alu_w    = fetch_instr_v_alu_i;
 wire       issue_invalid_w  = fetch_instr_invalid_i;
 
 //-------------------------------------------------------------
@@ -411,6 +414,7 @@ end
 
 assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i;
 assign exec_opcode_valid_o  = opcode_issue_r;
+assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w;
 assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign interrupt_inhibit_o  = csr_pending_q || issue_csr_w;

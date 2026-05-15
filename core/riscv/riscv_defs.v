@@ -54,8 +54,77 @@
 `define ALU_LESS_THAN_SIGNED                    4'b1011
 
 //--------------------------------------------------------------------
+// Vector ALU function codes
+// One code per operation, not per source-variant. vv/vx/vi differ only
+// in where the second operand comes from — scalar broadcasting is the
+// issue stage's job, the V-ALU just sees two pre-prepared vector inputs.
+// Lives on its own `alu_v_func_*` wire, separate from scalar `alu_func_*`.
+//--------------------------------------------------------------------
+`define ALU_V_NONE                              4'b0000
+`define ALU_V_ADD                               4'b0001  // vadd.{vv,vx,vi}
+`define ALU_V_SUB                               4'b0010  // vsub.{vv,vx}
+`define ALU_V_RSUB                              4'b0011  // vrsub.{vx,vi}
+`define ALU_V_MINU                              4'b0100  // vminu.{vv,vx}
+`define ALU_V_MAXU                              4'b0101  // vmaxu.{vv,vx}
+`define ALU_V_MUL                               4'b0110  // vmul.vv
+// `define ALU_V_REDSUM (deferred — vredsum.vs is a reduction, not lane-wise)
+
+//--------------------------------------------------------------------
 // Instructions Masks
 //--------------------------------------------------------------------
+
+// vadd.vv
+`define INST_VADD_VV 32'h57
+`define INST_VADD_VV_MASK 32'hfc00707f
+
+// vadd.vx
+`define INST_VADD_VX 32'h4057
+`define INST_VADD_VX_MASK 32'hfc00707f
+
+// vadd.vi
+`define INST_VADD_VI 32'h3057
+`define INST_VADD_VI_MASK 32'hfc00707f
+
+// vsub.vv
+`define INST_VSUB_VV 32'h8000057
+`define INST_VSUB_VV_MASK 32'hfc00707f
+
+// vsub.vx
+`define INST_VSUB_VX 32'h8004057
+`define INST_VSUB_VX_MASK 32'hfc00707f
+
+// vrsub.vx
+`define INST_VRSUB_VX 32'hc004057
+`define INST_VRSUB_VX_MASK 32'hfc00707f
+
+// vrsub.vi
+`define INST_VRSUB_VI 32'hc003057
+`define INST_VRSUB_VI_MASK 32'hfc00707f
+
+// vminu.vv
+`define INST_VMINU_VV 32'h10000057
+`define INST_VMINU_VV_MASK 32'hfc00707f
+
+// vminu.vx
+`define INST_VMINU_VX 32'h10004057
+`define INST_VMINU_VX_MASK 32'hfc00707f
+
+// vmaxu.vv
+`define INST_VMAXU_VV 32'h18000057
+`define INST_VMAXU_VV_MASK 32'hfc00707f
+
+// vmaxu.vx
+`define INST_VMAXU_VX 32'h18004057
+`define INST_VMAXU_VX_MASK 32'hfc00707f
+
+// vredsum.vs
+`define INST_VREDSUM_VS 32'h00002057
+`define INST_VREDSUM_VS_MASK 32'hfc00707f
+
+// vmul.vv
+`define INST_VMUL_VV 32'h94002057
+`define INST_VMUL_VV_MASK 32'hfc00707f
+
 // andi
 `define INST_ANDI 32'h7013
 `define INST_ANDI_MASK 32'h707f
