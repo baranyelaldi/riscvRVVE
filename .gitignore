@@ -8,3 +8,4 @@ top_tcm_axi/tb/obj/
 top_tcm_axi/tb/obj_verilated/
 top_tcm_axi/tb/verilated/
 top_tcm_axi/tb/*.vcd
+tests/*.elf
