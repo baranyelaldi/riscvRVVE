@@ -54,6 +54,7 @@ module riscv_core
     ,parameter MEM_CACHE_ADDR_MIN = 32'h80000000
     ,parameter MEM_CACHE_ADDR_MAX = 32'h8fffffff
     ,parameter VLEN               = 128
+    ,parameter ELEN               = 32
 )
 //-----------------------------------------------------------------
 // Ports
@@ -222,6 +223,12 @@ wire  [  4:0]  lsu_opcode_ra_idx_w;
 wire  [ 31:0]  csr_writeback_exception_pc_w;
 wire           mmu_store_fault_w;
 wire           branch_exec_is_call_w;
+wire  [  3:0]   alu_v_func_w;
+wire [VLEN-1:0] v_operand_vs1_w;
+wire [VLEN-1:0] v_operand_vs2_w;
+wire            v_writeback_valid_w;
+wire  [  4:0]   v_writeback_vd_idx_w;
+wire [VLEN-1:0] v_writeback_value_w;
 
 
 riscv_exec
@@ -256,6 +263,26 @@ u_exec
     ,.writeback_value_o(writeback_exec_value_w)
 );
 
+riscv_v_exec
+#(
+    .VLEN(VLEN)
+    ,.ELEN(ELEN)
+)
+u_v_exec
+(
+    .clk_i(clk_i)
+    ,.rst_i(rst_i)
+    ,.opcode_valid_i(v_alu_opcode_valid_w)
+    ,.opcode_invalid_i(opcode_invalid_w)
+    ,.opcode_vd_idx_i(opcode_rd_idx_w)
+    ,.v_operand_vs1_i(v_operand_vs1_w)
+    ,.v_operand_vs2_i(v_operand_vs2_w)
+    ,.alu_v_func_i(alu_v_func_w)
+
+    ,.writeback_valid_o(v_writeback_valid_w)
+    ,.writeback_vd_idx_o(v_writeback_vd_idx_w)
+    ,.writeback_value_o(v_writeback_value_w)
+);
 
 riscv_decode
 #(
@@ -507,6 +534,7 @@ riscv_issue
     ,.SUPPORT_MUL_BYPASS(SUPPORT_MUL_BYPASS)
     ,.SUPPORT_DUAL_ISSUE(1)
     ,.VLEN(VLEN)
+    ,.ELEN(ELEN)
 )
 u_issue
 (
@@ -554,6 +582,10 @@ u_issue
     ,.csr_result_e1_exception_i(csr_result_e1_exception_w)
     ,.lsu_stall_i(lsu_stall_w)
     ,.take_interrupt_i(take_interrupt_w)
+    ,.v_writeback_valid_i  (v_writeback_valid_w)
+    ,.v_writeback_vd_idx_i (v_writeback_vd_idx_w)
+    ,.v_writeback_value_i  (v_writeback_value_w)
+
 
     // Outputs
     ,.fetch_accept_o(fetch_accept_w)
@@ -590,6 +622,9 @@ u_issue
     ,.mul_opcode_rb_idx_o(mul_opcode_rb_idx_w)
     ,.mul_opcode_ra_operand_o(mul_opcode_ra_operand_w)
     ,.mul_opcode_rb_operand_o(mul_opcode_rb_operand_w)
+    ,.v_operand_vs1_o(v_operand_vs1_w)
+    ,.v_operand_vs2_o(v_operand_vs2_w)
+    ,.alu_v_func_o(alu_v_func_w)
     ,.csr_opcode_opcode_o(csr_opcode_opcode_w)
     ,.csr_opcode_pc_o(csr_opcode_pc_w)
     ,.csr_opcode_invalid_o(csr_opcode_invalid_w)

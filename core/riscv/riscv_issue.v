@@ -50,6 +50,7 @@ module riscv_issue
     ,parameter SUPPORT_MUL_BYPASS = 1
     ,parameter SUPPORT_REGFILE_XILINX = 0
     ,parameter VLEN                   = 128
+    ,parameter ELEN                   = 32
 )
 //-----------------------------------------------------------------
 // Ports
@@ -99,6 +100,9 @@ module riscv_issue
     ,input  [  5:0]  csr_result_e1_exception_i
     ,input           lsu_stall_i
     ,input           take_interrupt_i
+    ,input             v_writeback_valid_i
+    ,input  [    4:0]  v_writeback_vd_idx_i
+    ,input  [VLEN-1:0] v_writeback_value_i
 
     // Outputs
     ,output          fetch_accept_o
@@ -135,6 +139,9 @@ module riscv_issue
     ,output [  4:0]  mul_opcode_rb_idx_o
     ,output [ 31:0]  mul_opcode_ra_operand_o
     ,output [ 31:0]  mul_opcode_rb_operand_o
+    ,output [VLEN-1:0] v_operand_vs1_o
+    ,output [VLEN-1:0] v_operand_vs2_o
+    ,output [  3:0]  alu_v_func_o
     ,output [ 31:0]  csr_opcode_opcode_o
     ,output [ 31:0]  csr_opcode_pc_o
     ,output          csr_opcode_invalid_o
@@ -201,6 +208,46 @@ wire       issue_csr_w      = fetch_instr_csr_i;
 wire       issue_v_alu_w    = fetch_instr_v_alu_i;
 wire       issue_invalid_w  = fetch_instr_invalid_i;
 
+//-------------------------------------------------------------
+// V-ALU Function Decode
+//-------------------------------------------------------------
+reg [3:0] alu_v_func_r;
+always @* begin
+    alu_v_func_r = `ALU_V_NONE;
+    if      ((opcode_opcode_o & `INST_VADD_VV_MASK) == `INST_VADD_VV) alu_v_func_r = `ALU_V_ADD;
+    else if ((opcode_opcode_o & `INST_VADD_VX_MASK) == `INST_VADD_VX) alu_v_func_r = `ALU_V_ADD;
+    else if ((opcode_opcode_o & `INST_VADD_VI_MASK) == `INST_VADD_VI) alu_v_func_r = `ALU_V_ADD;
+    else if ((opcode_opcode_o & `INST_VSUB_VV_MASK) == `INST_VSUB_VV) alu_v_func_r = `ALU_V_SUB;
+    else if ((opcode_opcode_o & `INST_VSUB_VX_MASK) == `INST_VSUB_VX) alu_v_func_r = `ALU_V_SUB;
+    else if ((opcode_opcode_o & `INST_VRSUB_VX_MASK) == `INST_VRSUB_VX) alu_v_func_r = `ALU_V_RSUB;
+    else if ((opcode_opcode_o & `INST_VRSUB_VI_MASK) == `INST_VRSUB_VI) alu_v_func_r = `ALU_V_RSUB;
+    else if ((opcode_opcode_o & `INST_VMINU_VV_MASK) == `INST_VMINU_VV) alu_v_func_r = `ALU_V_MINU;
+    else if ((opcode_opcode_o & `INST_VMINU_VX_MASK) == `INST_VMINU_VX) alu_v_func_r = `ALU_V_MINU;
+    else if ((opcode_opcode_o & `INST_VMAXU_VV_MASK) == `INST_VMAXU_VV) alu_v_func_r = `ALU_V_MAXU;
+    else if ((opcode_opcode_o & `INST_VMAXU_VX_MASK) == `INST_VMAXU_VX) alu_v_func_r = `ALU_V_MAXU;
+    else if ((opcode_opcode_o & `INST_VMUL_VV_MASK) == `INST_VMUL_VV) alu_v_func_r = `ALU_V_MUL;
+    else if ((opcode_opcode_o & `INST_VMV_V_X_MASK) == `INST_VMV_V_X) alu_v_func_r = `ALU_V_MV_X;
+end
+
+assign alu_v_func_o = alu_v_func_r;
+
+//-------------------------------------------------------------
+// V-ALU Operand Selection
+//-------------------------------------------------------------
+wire [2:0] v_funct3_w = opcode_opcode_o[14:12];
+wire          is_vv_w = (v_funct3_w == 3'b000) || (v_funct3_w == 3'b010);
+wire          is_vx_w = (v_funct3_w == 3'b100) || (v_funct3_w == 3'b110);
+wire          is_vi_w = (v_funct3_w == 3'b011);
+
+wire [4:0]  v_imm5_w = opcode_opcode_o[19:15];
+wire [31:0] v_imm_signext_w = {{27{v_imm5_w[4]}}, v_imm5_w};
+
+wire [VLEN-1:0] v_scalar_broadcast_w = {(VLEN/ELEN){opcode_ra_operand_o}};
+wire [VLEN-1:0] v_imm_broadcast_w    = {(VLEN/ELEN){v_imm_signext_w}};
+
+assign v_operand_vs1_o = is_vv_w ? v_ra0_value_w : is_vx_w ? v_scalar_broadcast_w : v_imm_broadcast_w;
+
+assign v_operand_vs2_o = v_rb0_value_w;
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 
@@ -466,9 +513,9 @@ u_v_regfile
     .clk_i(clk_i),
     .rst_i(rst_i),
 
-    .rd0_i(5'b0),               // TODO: from V-ALU writeback (Phase 4)
-    .rd0_value_i({VLEN{1'b0}}), // TODO: from V-ALU writeback
-    .rd0_we_i(1'b0),            // TODO: from V-ALU writeback
+    .rd0_i(v_writeback_vd_idx_i),
+    .rd0_value_i(v_writeback_value_i),
+    .rd0_we_i(v_writeback_valid_i),
 
     .ra0_i(issue_ra_idx_w),
     .rb0_i(issue_rb_idx_w),
