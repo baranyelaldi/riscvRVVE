@@ -55,6 +55,7 @@ module riscv_decoder
     ,output                       div_o
     ,output                       csr_o
     ,output                       v_alu_o
+    ,output                       v_lsu_o
     ,output                       rd_valid_o
 );
 
@@ -73,6 +74,15 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VSUB_VV_MASK) == `INST_VSUB_VV)        ||
                     ((opcode_i & `INST_VSUB_VX_MASK) == `INST_VSUB_VX)        ||
                     ((opcode_i & `INST_VMV_V_X_MASK) == `INST_VMV_V_X);
+
+wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
+                    ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||
+                    ((opcode_i & `INST_VLE32_V_MASK) == `INST_VLE32_V)        ||
+                    ((opcode_i & `INST_VLE64_V_MASK) == `INST_VLE64_V)        ||
+                    ((opcode_i & `INST_VSE8_V_MASK) == `INST_VSE8_V)          ||
+                    ((opcode_i & `INST_VSE16_V_MASK) == `INST_VSE16_V)        ||
+                    ((opcode_i & `INST_VSE32_V_MASK) == `INST_VSE32_V)        ||
+                    ((opcode_i & `INST_VSE64_V_MASK) == `INST_VSE64_V);
 
 // Invalid instruction
 wire invalid_w =    valid_i &&
@@ -135,7 +145,8 @@ wire invalid_w =    valid_i &&
                     (enable_muldiv_i && (opcode_i & `INST_DIVU_MASK) == `INST_DIVU)     ||
                     (enable_muldiv_i && (opcode_i & `INST_REM_MASK) == `INST_REM)       ||
                     (enable_muldiv_i && (opcode_i & `INST_REMU_MASK) == `INST_REMU) ||
-                    v_alu_w);
+                    v_alu_w ||
+                    v_lsu_w);
 
 assign invalid_o = invalid_w;
 
@@ -252,5 +263,7 @@ assign csr_o =      ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)            ||
                     invalid_w || fetch_fault_i;
 
 assign v_alu_o = v_alu_w;
+
+assign v_lsu_o = v_lsu_w;
 
 endmodule

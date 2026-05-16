@@ -201,6 +201,7 @@ wire           branch_exec_is_jmp_w;
 wire           mmu_lsu_cacheable_w;
 wire           fetch_instr_csr_w;
 wire           fetch_instr_v_alu_w;
+wire           fetch_instr_v_lsu_w;
 wire           lsu_opcode_valid_w;
 wire  [ 31:0]  fetch_dec_instr_w;
 wire           csr_result_e1_write_w;
@@ -229,6 +230,42 @@ wire [VLEN-1:0] v_operand_vs2_w;
 wire            v_writeback_valid_w;
 wire  [  4:0]   v_writeback_vd_idx_w;
 wire [VLEN-1:0] v_writeback_value_w;
+wire             v_lsu_opcode_valid_w;
+wire             v_lsu_is_store_w;
+wire [   31:0]   v_lsu_base_addr_w;
+wire [VLEN-1:0]  v_lsu_store_data_w;
+wire [    4:0]   v_lsu_vd_idx_w;
+wire             v_lsu_busy_w;
+wire [   31:0]   v_lsu_mem_addr_w;
+wire [   31:0]   v_lsu_mem_data_wr_w;
+wire             v_lsu_mem_rd_w;
+wire [    3:0]   v_lsu_mem_wr_w;
+wire             v_lsu_mem_cacheable_w;
+wire [   10:0]   v_lsu_mem_req_tag_w;
+wire             v_lsu_wb_valid_w;
+wire [    4:0]   v_lsu_wb_vd_idx_w;
+wire [VLEN-1:0]  v_lsu_wb_value_w;
+wire             v_lsu_mem_accept_w;
+wire             v_lsu_mem_ack_w;
+// Scalar LSU private outputs (before mux with V-LSU)
+wire [   31:0]   scalar_lsu_addr_w;
+wire [   31:0]   scalar_lsu_data_wr_w;
+wire             scalar_lsu_rd_w;
+wire [    3:0]   scalar_lsu_wr_w;
+wire             scalar_lsu_cacheable_w;
+wire [   10:0]   scalar_lsu_req_tag_w;
+wire             scalar_lsu_invalidate_w;
+wire             scalar_lsu_writeback_w;
+wire             scalar_lsu_flush_w;
+// Steered response signals (from mmu, gated by ~v_lsu_busy)
+wire             scalar_lsu_accept_w;
+wire             scalar_lsu_ack_w;
+wire             scalar_lsu_error_w;
+// V-regfile write port: V-ALU OR V-LSU (mutually exclusive — busy stall guarantees)
+wire             v_wb_valid_w  = v_writeback_valid_w | v_lsu_wb_valid_w;
+wire [    4:0]   v_wb_vd_idx_w = v_writeback_valid_w ? v_writeback_vd_idx_w : v_lsu_wb_vd_idx_w;
+wire [VLEN-1:0]  v_wb_value_w  = v_writeback_valid_w ? v_writeback_value_w  : v_lsu_wb_value_w;
+
 
 
 riscv_exec
@@ -316,6 +353,7 @@ u_decode
     ,.fetch_out_instr_div_o(fetch_instr_div_w)
     ,.fetch_out_instr_csr_o(fetch_instr_csr_w)
     ,.fetch_out_instr_v_alu_o(fetch_instr_v_alu_w)
+    ,.fetch_out_instr_v_lsu_o(fetch_instr_v_lsu_w)
     ,.fetch_out_instr_rd_valid_o(fetch_instr_rd_valid_w)
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
 );
@@ -410,28 +448,85 @@ u_lsu
     ,.opcode_ra_operand_i(lsu_opcode_ra_operand_w)
     ,.opcode_rb_operand_i(lsu_opcode_rb_operand_w)
     ,.mem_data_rd_i(mmu_lsu_data_rd_w)
-    ,.mem_accept_i(mmu_lsu_accept_w)
-    ,.mem_ack_i(mmu_lsu_ack_w)
-    ,.mem_error_i(mmu_lsu_error_w)
+    ,.mem_accept_i(scalar_lsu_accept_w)
+    ,.mem_ack_i(scalar_lsu_ack_w)
+    ,.mem_error_i(scalar_lsu_error_w)
     ,.mem_resp_tag_i(mmu_lsu_resp_tag_w)
     ,.mem_load_fault_i(mmu_load_fault_w)
     ,.mem_store_fault_i(mmu_store_fault_w)
 
     // Outputs
-    ,.mem_addr_o(mmu_lsu_addr_w)
-    ,.mem_data_wr_o(mmu_lsu_data_wr_w)
-    ,.mem_rd_o(mmu_lsu_rd_w)
-    ,.mem_wr_o(mmu_lsu_wr_w)
-    ,.mem_cacheable_o(mmu_lsu_cacheable_w)
-    ,.mem_req_tag_o(mmu_lsu_req_tag_w)
-    ,.mem_invalidate_o(mmu_lsu_invalidate_w)
-    ,.mem_writeback_o(mmu_lsu_writeback_w)
-    ,.mem_flush_o(mmu_lsu_flush_w)
+    ,.mem_addr_o(scalar_lsu_addr_w)
+    ,.mem_data_wr_o(scalar_lsu_data_wr_w)
+    ,.mem_rd_o(scalar_lsu_rd_w)
+    ,.mem_wr_o(scalar_lsu_wr_w)
+    ,.mem_cacheable_o(scalar_lsu_cacheable_w)
+    ,.mem_req_tag_o(scalar_lsu_req_tag_w)
+    ,.mem_invalidate_o(scalar_lsu_invalidate_w)
+    ,.mem_writeback_o(scalar_lsu_writeback_w)
+    ,.mem_flush_o(scalar_lsu_flush_w)
     ,.writeback_valid_o(writeback_mem_valid_w)
     ,.writeback_value_o(writeback_mem_value_w)
     ,.writeback_exception_o(writeback_mem_exception_w)
     ,.stall_o(lsu_stall_w)
 );
+
+riscv_v_lsu
+#(
+    .VLEN              (VLEN),
+    .MEM_CACHE_ADDR_MIN(MEM_CACHE_ADDR_MIN),
+    .MEM_CACHE_ADDR_MAX(MEM_CACHE_ADDR_MAX)
+)
+u_v_lsu
+(
+     .clk_i              (clk_i)
+    ,.rst_i              (rst_i)
+    ,.opcode_valid_i     (v_lsu_opcode_valid_w)
+    ,.opcode_vd_idx_i    (v_lsu_vd_idx_w)
+    ,.is_store_i         (v_lsu_is_store_w)
+    ,.base_addr_i        (v_lsu_base_addr_w)
+    ,.store_data_i       (v_lsu_store_data_w)
+
+    // Memory interface (private wires; muxed below)
+    ,.mem_data_rd_i      (mmu_lsu_data_rd_w)   // shared with scalar — see 6c
+    ,.mem_accept_i       (v_lsu_mem_accept_w)
+    ,.mem_ack_i          (v_lsu_mem_ack_w)
+    ,.mem_error_i        (1'b0)
+    ,.mem_addr_o         (v_lsu_mem_addr_w)
+    ,.mem_data_wr_o      (v_lsu_mem_data_wr_w)
+    ,.mem_rd_o           (v_lsu_mem_rd_w)
+    ,.mem_wr_o           (v_lsu_mem_wr_w)
+    ,.mem_cacheable_o    (v_lsu_mem_cacheable_w)
+    ,.mem_req_tag_o      (v_lsu_mem_req_tag_w)
+
+    ,.busy_o             (v_lsu_busy_w)
+    ,.writeback_valid_o  (v_lsu_wb_valid_w)
+    ,.writeback_vd_idx_o (v_lsu_wb_vd_idx_w)
+    ,.writeback_value_o  (v_lsu_wb_value_w)
+);
+
+//-----------------------------------------------------------------
+// LSU memory-port mux: V-LSU wins the bus while busy
+//-----------------------------------------------------------------
+// Request side — drive mmu_lsu_*_w from active LSU
+assign mmu_lsu_addr_w       = v_lsu_busy_w ? v_lsu_mem_addr_w       : scalar_lsu_addr_w;
+assign mmu_lsu_data_wr_w    = v_lsu_busy_w ? v_lsu_mem_data_wr_w    : scalar_lsu_data_wr_w;
+assign mmu_lsu_rd_w         = v_lsu_busy_w ? v_lsu_mem_rd_w         : scalar_lsu_rd_w;
+assign mmu_lsu_wr_w         = v_lsu_busy_w ? v_lsu_mem_wr_w         : scalar_lsu_wr_w;
+assign mmu_lsu_cacheable_w  = v_lsu_busy_w ? v_lsu_mem_cacheable_w  : scalar_lsu_cacheable_w;
+assign mmu_lsu_req_tag_w    = v_lsu_busy_w ? v_lsu_mem_req_tag_w    : scalar_lsu_req_tag_w;
+// Cache-management signals only come from scalar LSU; gate to 0 when V-LSU busy
+assign mmu_lsu_invalidate_w = ~v_lsu_busy_w & scalar_lsu_invalidate_w;
+assign mmu_lsu_writeback_w  = ~v_lsu_busy_w & scalar_lsu_writeback_w;
+assign mmu_lsu_flush_w      = ~v_lsu_busy_w & scalar_lsu_flush_w;
+
+// Response side — only the active LSU sees accept/ack/error
+assign v_lsu_mem_accept_w   =  v_lsu_busy_w & mmu_lsu_accept_w;
+assign v_lsu_mem_ack_w      =  v_lsu_busy_w & mmu_lsu_ack_w;
+// V-LSU's mem_error_i is hardcoded to 0 in the instance, so no v_lsu_mem_error_w needed.
+assign scalar_lsu_accept_w  = ~v_lsu_busy_w & mmu_lsu_accept_w;
+assign scalar_lsu_ack_w     = ~v_lsu_busy_w & mmu_lsu_ack_w;
+assign scalar_lsu_error_w   = ~v_lsu_busy_w & mmu_lsu_error_w;
 
 
 riscv_csr
@@ -553,6 +648,8 @@ u_issue
     ,.fetch_instr_div_i(fetch_instr_div_w)
     ,.fetch_instr_csr_i(fetch_instr_csr_w)
     ,.fetch_instr_v_alu_i(fetch_instr_v_alu_w)
+    ,.fetch_instr_v_lsu_i(fetch_instr_v_lsu_w)
+    ,.v_lsu_busy_i(v_lsu_busy_w)
     ,.fetch_instr_rd_valid_i(fetch_instr_rd_valid_w)
     ,.fetch_instr_invalid_i(fetch_instr_invalid_w)
     ,.branch_exec_request_i(branch_exec_request_w)
@@ -582,9 +679,9 @@ u_issue
     ,.csr_result_e1_exception_i(csr_result_e1_exception_w)
     ,.lsu_stall_i(lsu_stall_w)
     ,.take_interrupt_i(take_interrupt_w)
-    ,.v_writeback_valid_i  (v_writeback_valid_w)
-    ,.v_writeback_vd_idx_i (v_writeback_vd_idx_w)
-    ,.v_writeback_value_i  (v_writeback_value_w)
+    ,.v_writeback_valid_i  (v_wb_valid_w)
+    ,.v_writeback_vd_idx_i (v_wb_vd_idx_w)
+    ,.v_writeback_value_i  (v_wb_value_w)
 
 
     // Outputs
@@ -594,6 +691,7 @@ u_issue
     ,.branch_priv_o(branch_priv_w)
     ,.exec_opcode_valid_o(exec_opcode_valid_w)
     ,.v_alu_opcode_valid_o(v_alu_opcode_valid_w)
+    ,.v_lsu_opcode_valid_o(v_lsu_opcode_valid_w)
     ,.lsu_opcode_valid_o(lsu_opcode_valid_w)
     ,.csr_opcode_valid_o(csr_opcode_valid_w)
     ,.mul_opcode_valid_o(mul_opcode_valid_w)
@@ -625,6 +723,10 @@ u_issue
     ,.v_operand_vs1_o(v_operand_vs1_w)
     ,.v_operand_vs2_o(v_operand_vs2_w)
     ,.alu_v_func_o(alu_v_func_w)
+    ,.v_lsu_is_store_o(v_lsu_is_store_w)
+    ,.v_lsu_base_addr_o(v_lsu_base_addr_w)
+    ,.v_lsu_store_data_o(v_lsu_store_data_w)
+    ,.v_lsu_vd_idx_o(v_lsu_vd_idx_w)
     ,.csr_opcode_opcode_o(csr_opcode_opcode_w)
     ,.csr_opcode_pc_o(csr_opcode_pc_w)
     ,.csr_opcode_invalid_o(csr_opcode_invalid_w)

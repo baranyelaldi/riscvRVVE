@@ -196,7 +196,11 @@ assign mem_addr_o    = {addr_q[31:2], 2'b00};
 assign mem_data_wr_o = buffer_q[beat_q*32 +: 32];
 assign mem_rd_o      = (state_q == STATE_REQ) &&  is_load_q;
 assign mem_wr_o      = (state_q == STATE_REQ && !is_load_q) ? 4'b1111 : 4'b0;
+/* verilator lint_off UNSIGNED */
+/* verilator lint_off CMPCONST */
 assign mem_cacheable_o = (addr_q >= MEM_CACHE_ADDR_MIN && addr_q <= MEM_CACHE_ADDR_MAX);
+/* verilator lint_on  CMPCONST */
+/* verilator lint_on  UNSIGNED */
 assign mem_req_tag_o   = 11'b0;
 
 assign busy_o = (state_q != STATE_IDLE);

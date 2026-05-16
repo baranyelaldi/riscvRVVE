@@ -71,6 +71,8 @@ module riscv_issue
     ,input           fetch_instr_div_i
     ,input           fetch_instr_csr_i
     ,input           fetch_instr_v_alu_i
+    ,input           fetch_instr_v_lsu_i
+    ,input           v_lsu_busy_i
     ,input           fetch_instr_rd_valid_i
     ,input           fetch_instr_invalid_i
     ,input           branch_exec_request_i
@@ -111,6 +113,7 @@ module riscv_issue
     ,output [  1:0]  branch_priv_o
     ,output          exec_opcode_valid_o
     ,output          v_alu_opcode_valid_o
+    ,output          v_lsu_opcode_valid_o
     ,output          lsu_opcode_valid_o
     ,output          csr_opcode_valid_o
     ,output          mul_opcode_valid_o
@@ -142,6 +145,10 @@ module riscv_issue
     ,output [VLEN-1:0] v_operand_vs1_o
     ,output [VLEN-1:0] v_operand_vs2_o
     ,output [  3:0]  alu_v_func_o
+    ,output          v_lsu_is_store_o
+    ,output [ 31:0]  v_lsu_base_addr_o
+    ,output [VLEN-1:0] v_lsu_store_data_o
+    ,output [  4:0]  v_lsu_vd_idx_o
     ,output [ 31:0]  csr_opcode_opcode_o
     ,output [ 31:0]  csr_opcode_pc_o
     ,output          csr_opcode_invalid_o
@@ -206,7 +213,9 @@ wire       issue_mul_w      = fetch_instr_mul_i;
 wire       issue_div_w      = fetch_instr_div_i;
 wire       issue_csr_w      = fetch_instr_csr_i;
 wire       issue_v_alu_w    = fetch_instr_v_alu_i;
+wire       issue_v_lsu_w    = fetch_instr_v_lsu_i;
 wire       issue_invalid_w  = fetch_instr_invalid_i;
+wire       is_v_store_w = issue_v_lsu_w && (opcode_opcode_o[5] == 1'b1);
 
 //-------------------------------------------------------------
 // V-ALU Function Decode
@@ -253,6 +262,16 @@ wire [VLEN-1:0] v_operand_vs2_pre_fwd_w = v_rb0_value_w;
 
 assign v_operand_vs1_o = v_fwd_vs1_w ? v_writeback_value_i : v_operand_vs1_pre_fwd_w;
 assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_fwd_w;
+//-------------------------------------------------------------
+// V-LSU Operand Selection
+//------------------------------------------------------------- 
+wire [4:0] v_regfile_ra_idx_w = (issue_v_lsu_w && is_v_store_w) ? issue_rd_idx_w : issue_ra_idx_w;
+
+assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w & ~v_lsu_busy_i;
+assign v_lsu_is_store_o     = is_v_store_w;
+assign v_lsu_base_addr_o    = opcode_ra_operand_o;   // rs1 from scalar regfile
+assign v_lsu_store_data_o   = v_ra0_value_w;         // vs3 read via vector regfile
+assign v_lsu_vd_idx_o       = issue_rd_idx_w;        // vd for loads / vs3 idx for stores
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 
@@ -467,12 +486,12 @@ end
 
 assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i;
 assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w;
-assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w;
+assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w & ~v_lsu_busy_i;
 assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign interrupt_inhibit_o  = csr_pending_q || issue_csr_w;
 
-assign fetch_accept_o       = opcode_valid_w ? (opcode_accept_r & ~take_interrupt_i) : 1'b1;
+assign fetch_accept_o       = opcode_valid_w ? (opcode_accept_r & ~take_interrupt_i & ~v_lsu_busy_i) : 1'b1;
 
 assign stall_w              = pipe_stall_raw_w;
 

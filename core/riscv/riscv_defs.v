@@ -130,6 +130,38 @@
 `define INST_VMV_V_X 32'h5c004057
 `define INST_VMV_V_X_MASK 32'hfc00707f
 
+// vle8.v
+`define INST_VLE8_V       32'h00000007
+`define INST_VLE8_V_MASK  32'hfdf0707f
+
+// vle16.v
+`define INST_VLE16_V      32'h00005007
+`define INST_VLE16_V_MASK 32'hfdf0707f
+
+// vle32.v
+`define INST_VLE32_V      32'h00006007
+`define INST_VLE32_V_MASK 32'hfdf0707f
+
+// vle64.v
+`define INST_VLE64_V      32'h00007007
+`define INST_VLE64_V_MASK 32'hfdf0707f
+
+// vse8.v
+`define INST_VSE8_V       32'h00000027
+`define INST_VSE8_V_MASK  32'hfdf0707f
+
+// vse16.v
+`define INST_VSE16_V      32'h00005027
+`define INST_VSE16_V_MASK 32'hfdf0707f
+
+// vse32.v
+`define INST_VSE32_V      32'h00006027
+`define INST_VSE32_V_MASK 32'hfdf0707f
+
+// vse64.v
+`define INST_VSE64_V      32'h00007027
+`define INST_VSE64_V_MASK 32'hfdf0707f
+
 // andi
 `define INST_ANDI 32'h7013
 `define INST_ANDI_MASK 32'h707f
