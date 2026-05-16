@@ -232,7 +232,7 @@ end
 assign alu_v_func_o = alu_v_func_r;
 
 //-------------------------------------------------------------
-// V-ALU Operand Selection
+// V-ALU Operand Selection and Forwarding
 //-------------------------------------------------------------
 wire [2:0] v_funct3_w = opcode_opcode_o[14:12];
 wire          is_vv_w = (v_funct3_w == 3'b000) || (v_funct3_w == 3'b010);
@@ -245,9 +245,14 @@ wire [31:0] v_imm_signext_w = {{27{v_imm5_w[4]}}, v_imm5_w};
 wire [VLEN-1:0] v_scalar_broadcast_w = {(VLEN/ELEN){opcode_ra_operand_o}};
 wire [VLEN-1:0] v_imm_broadcast_w    = {(VLEN/ELEN){v_imm_signext_w}};
 
-assign v_operand_vs1_o = is_vv_w ? v_ra0_value_w : is_vx_w ? v_scalar_broadcast_w : v_imm_broadcast_w;
+wire v_fwd_vs1_w = is_vv_w && v_writeback_valid_i && (v_writeback_vd_idx_i == issue_ra_idx_w);
+wire v_fwd_vs2_w = v_writeback_valid_i && (v_writeback_vd_idx_i == issue_rb_idx_w);
 
-assign v_operand_vs2_o = v_rb0_value_w;
+wire [VLEN-1:0] v_operand_vs1_pre_fwd_w = is_vv_w ? v_ra0_value_w : is_vx_w ? v_scalar_broadcast_w : v_imm_broadcast_w;
+wire [VLEN-1:0] v_operand_vs2_pre_fwd_w = v_rb0_value_w;
+
+assign v_operand_vs1_o = v_fwd_vs1_w ? v_writeback_value_i : v_operand_vs1_pre_fwd_w;
+assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_fwd_w;
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 
