@@ -67,6 +67,7 @@
 `define ALU_V_MINU                              4'b0100  // vminu.{vv,vx}
 `define ALU_V_MAXU                              4'b0101  // vmaxu.{vv,vx}
 `define ALU_V_MUL                               4'b0110  // vmul.vv
+`define ALU_V_MV_X                              4'b0111  // vmv.v.x  (broadcast scalar)
 // `define ALU_V_REDSUM (deferred — vredsum.vs is a reduction, not lane-wise)
 
 //--------------------------------------------------------------------
@@ -124,6 +125,10 @@
 // vmul.vv
 `define INST_VMUL_VV 32'h94002057
 `define INST_VMUL_VV_MASK 32'hfc00707f
+
+// vmv.v.x  (broadcast scalar register to every lane)
+`define INST_VMV_V_X 32'h5e004057
+`define INST_VMV_V_X_MASK 32'hfc00707f
 
 // andi
 `define INST_ANDI 32'h7013

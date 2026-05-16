@@ -71,7 +71,8 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VRSUB_VI_MASK) == `INST_VRSUB_VI)      ||
                     ((opcode_i & `INST_VRSUB_VX_MASK) == `INST_VRSUB_VX)      ||
                     ((opcode_i & `INST_VSUB_VV_MASK) == `INST_VSUB_VV)        ||
-                    ((opcode_i & `INST_VSUB_VX_MASK) == `INST_VSUB_VX);
+                    ((opcode_i & `INST_VSUB_VX_MASK) == `INST_VSUB_VX)        ||
+                    ((opcode_i & `INST_VMV_V_X_MASK) == `INST_VMV_V_X);
 
 // Invalid instruction
 wire invalid_w =    valid_i &&
