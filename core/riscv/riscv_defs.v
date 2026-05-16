@@ -127,7 +127,7 @@
 `define INST_VMUL_VV_MASK 32'hfc00707f
 
 // vmv.v.x  (broadcast scalar register to every lane)
-`define INST_VMV_V_X 32'h5e004057
+`define INST_VMV_V_X 32'h5c004057
 `define INST_VMV_V_X_MASK 32'hfc00707f
 
 // andi
