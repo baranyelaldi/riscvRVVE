@@ -25,6 +25,8 @@
 [treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_exec.u_alu.
 [treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_lsu.
 [treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.
+[treeopen] tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.
 [treeopen] tb.DUT.Vriscv_tcm_top.v.u_tcm.
 [sst_width] 320
 [signals_width] 280
@@ -133,6 +135,43 @@ tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x30_t5_w[31:0]
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_regfile.REGFILE.x31_t6_w[31:0]
 @1000200
 -REGISTERS
+@800200
+-VECTOR_REGISTERS
+@22
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[0][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[1][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[2][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[3][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[4][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[5][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[6][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[7][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[8][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[9][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[10][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[11][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[12][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[13][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[14][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[15][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[16][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[17][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[18][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[19][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[20][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[21][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[22][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[23][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[24][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[25][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[26][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[27][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[28][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[29][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[30][127:0]
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[31][127:0]
+@1000200
+-VECTOR_REGISTERS
 @800200
 -MEMORY_LSU
 @22

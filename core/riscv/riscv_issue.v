@@ -49,6 +49,7 @@ module riscv_issue
     ,parameter SUPPORT_LOAD_BYPASS = 1
     ,parameter SUPPORT_MUL_BYPASS = 1
     ,parameter SUPPORT_REGFILE_XILINX = 0
+    ,parameter VLEN                   = 128
 )
 //-----------------------------------------------------------------
 // Ports
@@ -450,6 +451,29 @@ u_regfile
     .rb0_i(issue_rb_idx_w),
     .ra0_value_o(issue_ra_value_w),
     .rb0_value_o(issue_rb_value_w)
+);
+
+wire [VLEN-1:0] v_ra0_value_w;
+wire [VLEN-1:0] v_rb0_value_w;
+// Vector Register file: 1W2R
+riscv_v_regfile
+#(
+     .VLEN(VLEN)
+     ,.SUPPORT_REGFILE_XILINX(SUPPORT_REGFILE_XILINX)
+)
+u_v_regfile
+(
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+
+    .rd0_i(5'b0),               // TODO: from V-ALU writeback (Phase 4)
+    .rd0_value_i({VLEN{1'b0}}), // TODO: from V-ALU writeback
+    .rd0_we_i(1'b0),            // TODO: from V-ALU writeback
+
+    .ra0_i(issue_ra_idx_w),
+    .rb0_i(issue_rb_idx_w),
+    .ra0_value_o(v_ra0_value_w),
+    .rb0_value_o(v_rb0_value_w)
 );
 
 //-------------------------------------------------------------

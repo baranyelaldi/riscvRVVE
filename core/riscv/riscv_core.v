@@ -53,6 +53,7 @@ module riscv_core
     ,parameter EXTRA_DECODE_STAGE = 0
     ,parameter MEM_CACHE_ADDR_MIN = 32'h80000000
     ,parameter MEM_CACHE_ADDR_MAX = 32'h8fffffff
+    ,parameter VLEN               = 128
 )
 //-----------------------------------------------------------------
 // Ports
@@ -505,6 +506,7 @@ riscv_issue
     ,.SUPPORT_MULDIV(SUPPORT_MULDIV)
     ,.SUPPORT_MUL_BYPASS(SUPPORT_MUL_BYPASS)
     ,.SUPPORT_DUAL_ISSUE(1)
+    ,.VLEN(VLEN)
 )
 u_issue
 (
