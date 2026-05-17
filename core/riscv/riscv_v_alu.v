@@ -65,6 +65,7 @@ localparam LANES = VLEN / ELEN;
 // Registers
 //-----------------------------------------------------------------
 reg [VLEN-1:0]      result_r;
+reg [ELEN-1:0]      sum_r;
 integer i;
 
 //-----------------------------------------------------------------
@@ -73,6 +74,7 @@ integer i;
 always @*
 begin
     result_r = {VLEN{1'b0}};
+    sum_r    = {ELEN{1'b0}};
 
     case (alu_v_func_i)
        //----------------------------------------------
@@ -133,6 +135,16 @@ begin
        `ALU_V_MV_X:
        begin
             result_r = v_operand_vs1_i;
+       end
+       //----------------------------------------------
+       // VREDSUM: vd[0] = vs1[0] + sum vs2[i]
+       //----------------------------------------------
+       `ALU_V_REDSUM:
+       begin
+            sum_r = v_operand_vs1_i[ELEN-1:0];
+            for (i=0; i<LANES; i=i+1)
+            sum_r = sum_r + v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN];
+            result_r = {{(VLEN-ELEN){1'b0}}, sum_r};
        end
 
        default  :

@@ -68,7 +68,7 @@
 `define ALU_V_MAXU                              4'b0101  // vmaxu.{vv,vx}
 `define ALU_V_MUL                               4'b0110  // vmul.vv
 `define ALU_V_MV_X                              4'b0111  // vmv.v.x  (broadcast scalar)
-// `define ALU_V_REDSUM (deferred — vredsum.vs is a reduction, not lane-wise)
+`define ALU_V_REDSUM                            4'b1000  // vredsum.vs (reduction to vd[0])
 
 //--------------------------------------------------------------------
 // Instructions Masks
