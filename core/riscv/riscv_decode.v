@@ -77,6 +77,7 @@ module riscv_decode
     ,output          fetch_out_instr_csr_o
     ,output          fetch_out_instr_v_alu_o
     ,output          fetch_out_instr_v_lsu_o
+    ,output          v_to_scalar_o
     ,output          fetch_out_instr_rd_valid_o
     ,output          fetch_out_instr_invalid_o
 );
@@ -125,6 +126,7 @@ begin
         ,.csr_o(fetch_out_instr_csr_o)
         ,.v_alu_o(fetch_out_instr_v_alu_o)
         ,.v_lsu_o(fetch_out_instr_v_lsu_o)
+        ,.v_to_scalar_o(v_to_scalar_o)
         ,.rd_valid_o(fetch_out_instr_rd_valid_o)
     );
 
@@ -154,6 +156,7 @@ begin
         ,.csr_o(fetch_out_instr_csr_o)
         ,.v_alu_o(fetch_out_instr_v_alu_o)
         ,.v_lsu_o(fetch_out_instr_v_lsu_o)
+        ,.v_to_scalar_o(v_to_scalar_o)
         ,.rd_valid_o(fetch_out_instr_rd_valid_o)
     );
 

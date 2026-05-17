@@ -237,6 +237,7 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VMUL_VV_MASK) == `INST_VMUL_VV) alu_v_func_r = `ALU_V_MUL;
     else if ((opcode_opcode_o & `INST_VMV_V_X_MASK) == `INST_VMV_V_X) alu_v_func_r = `ALU_V_MV_X;
     else if ((opcode_opcode_o & `INST_VREDSUM_VS_MASK) == `INST_VREDSUM_VS) alu_v_func_r = `ALU_V_REDSUM;
+    else if ((opcode_opcode_o & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) alu_v_func_r = `ALU_V_MV_X_S;
 end
 
 assign alu_v_func_o = alu_v_func_r;

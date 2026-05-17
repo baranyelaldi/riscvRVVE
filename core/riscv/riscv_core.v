@@ -202,6 +202,7 @@ wire           mmu_lsu_cacheable_w;
 wire           fetch_instr_csr_w;
 wire           fetch_instr_v_alu_w;
 wire           fetch_instr_v_lsu_w;
+wire           v_to_scalar_w;
 wire           lsu_opcode_valid_w;
 wire  [ 31:0]  fetch_dec_instr_w;
 wire           csr_result_e1_write_w;
@@ -265,6 +266,9 @@ wire             scalar_lsu_error_w;
 wire             v_wb_valid_w  = v_writeback_valid_w | v_lsu_wb_valid_w;
 wire [    4:0]   v_wb_vd_idx_w = v_writeback_valid_w ? v_writeback_vd_idx_w : v_lsu_wb_vd_idx_w;
 wire [VLEN-1:0]  v_wb_value_w  = v_writeback_valid_w ? v_writeback_value_w  : v_lsu_wb_value_w;
+wire [   31:0]   v_exec_scalar_value_w;
+wire             v_exec_scalar_we_w;
+wire [    4:0]   v_exec_scalar_rd_w;
 
 
 
@@ -315,10 +319,14 @@ u_v_exec
     ,.v_operand_vs1_i(v_operand_vs1_w)
     ,.v_operand_vs2_i(v_operand_vs2_w)
     ,.alu_v_func_i(alu_v_func_w)
+    ,.v_to_scalar_i(v_to_scalar_w)
 
     ,.writeback_valid_o(v_writeback_valid_w)
     ,.writeback_vd_idx_o(v_writeback_vd_idx_w)
     ,.writeback_value_o(v_writeback_value_w)
+    ,.v_exec_scalar_value_o(v_exec_scalar_value_w)
+    ,.v_exec_scalar_we_o(v_exec_scalar_we_w)
+    ,.v_exec_scalar_rd_o(v_exec_scalar_rd_w)
 );
 
 riscv_decode
@@ -354,6 +362,7 @@ u_decode
     ,.fetch_out_instr_csr_o(fetch_instr_csr_w)
     ,.fetch_out_instr_v_alu_o(fetch_instr_v_alu_w)
     ,.fetch_out_instr_v_lsu_o(fetch_instr_v_lsu_w)
+    ,.v_to_scalar_o(v_to_scalar_w)
     ,.fetch_out_instr_rd_valid_o(fetch_instr_rd_valid_w)
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
 );
@@ -528,6 +537,12 @@ assign scalar_lsu_accept_w  = ~v_lsu_busy_w & mmu_lsu_accept_w;
 assign scalar_lsu_ack_w     = ~v_lsu_busy_w & mmu_lsu_ack_w;
 assign scalar_lsu_error_w   = ~v_lsu_busy_w & mmu_lsu_error_w;
 
+// Scalar writeback mux: V-ALU vmv.x.s steals the scalar ALU writeback path
+wire [31:0] writeback_exec_value_muxed_w = v_exec_scalar_we_w
+                                         ? v_exec_scalar_value_w
+                                         : writeback_exec_value_w;
+
+
 
 riscv_csr
 #(
@@ -666,7 +681,7 @@ u_issue
     ,.branch_csr_request_i(branch_csr_request_w)
     ,.branch_csr_pc_i(branch_csr_pc_w)
     ,.branch_csr_priv_i(branch_csr_priv_w)
-    ,.writeback_exec_value_i(writeback_exec_value_w)
+    ,.writeback_exec_value_i(writeback_exec_value_muxed_w)
     ,.writeback_mem_valid_i(writeback_mem_valid_w)
     ,.writeback_mem_value_i(writeback_mem_value_w)
     ,.writeback_mem_exception_i(writeback_mem_exception_w)
@@ -679,9 +694,9 @@ u_issue
     ,.csr_result_e1_exception_i(csr_result_e1_exception_w)
     ,.lsu_stall_i(lsu_stall_w)
     ,.take_interrupt_i(take_interrupt_w)
-    ,.v_writeback_valid_i  (v_wb_valid_w)
-    ,.v_writeback_vd_idx_i (v_wb_vd_idx_w)
-    ,.v_writeback_value_i  (v_wb_value_w)
+    ,.v_writeback_valid_i(v_wb_valid_w)
+    ,.v_writeback_vd_idx_i(v_wb_vd_idx_w)
+    ,.v_writeback_value_i(v_wb_value_w)
 
 
     // Outputs

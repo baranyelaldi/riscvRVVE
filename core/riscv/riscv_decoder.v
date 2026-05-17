@@ -56,6 +56,7 @@ module riscv_decoder
     ,output                       csr_o
     ,output                       v_alu_o
     ,output                       v_lsu_o
+    ,output                       v_to_scalar_o
     ,output                       rd_valid_o
 );
 
@@ -73,7 +74,8 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VRSUB_VX_MASK) == `INST_VRSUB_VX)      ||
                     ((opcode_i & `INST_VSUB_VV_MASK) == `INST_VSUB_VV)        ||
                     ((opcode_i & `INST_VSUB_VX_MASK) == `INST_VSUB_VX)        ||
-                    ((opcode_i & `INST_VMV_V_X_MASK) == `INST_VMV_V_X);
+                    ((opcode_i & `INST_VMV_V_X_MASK) == `INST_VMV_V_X)        ||
+                    ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S);
 
 wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||
@@ -192,6 +194,7 @@ assign rd_valid_o = ((opcode_i & `INST_JALR_MASK) == `INST_JALR)     ||
                     ((opcode_i & `INST_CSRRC_MASK) == `INST_CSRRC)   ||
                     ((opcode_i & `INST_CSRRWI_MASK) == `INST_CSRRWI) ||
                     ((opcode_i & `INST_CSRRSI_MASK) == `INST_CSRRSI) ||
+                    ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) ||
                     ((opcode_i & `INST_CSRRCI_MASK) == `INST_CSRRCI);
 
 assign exec_o =     ((opcode_i & `INST_ANDI_MASK) == `INST_ANDI)  ||
@@ -263,6 +266,8 @@ assign csr_o =      ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)            ||
                     invalid_w || fetch_fault_i;
 
 assign v_alu_o = v_alu_w;
+
+assign v_to_scalar_o = ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S);
 
 assign v_lsu_o = v_lsu_w;
 

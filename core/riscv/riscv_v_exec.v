@@ -54,11 +54,15 @@ module riscv_v_exec
     ,input  [VLEN-1:0]  v_operand_vs1_i
     ,input  [VLEN-1:0]  v_operand_vs2_i
     ,input  [ 3:0]      alu_v_func_i
+    ,input              v_to_scalar_i
 
     // Outputs
     ,output             writeback_valid_o
     ,output [     4:0]  writeback_vd_idx_o
     ,output [VLEN-1:0]  writeback_value_o
+    ,output [31:0]      v_exec_scalar_value_o
+    ,output             v_exec_scalar_we_o
+    ,output [4:0]       v_exec_scalar_rd_o
 );
 
 
@@ -91,23 +95,30 @@ u_v_alu
 reg               writeback_valid_q;
 reg [     4:0]    writeback_vd_idx_q;
 reg [VLEN-1:0]    writeback_value_q;
+reg               v_to_scalar_q;
 
 always @ (posedge clk_i)
 if (rst_i) begin
     writeback_valid_q  <= 1'b0;
     writeback_vd_idx_q <= 5'b0;
     writeback_value_q  <= {VLEN{1'b0}};
+    v_to_scalar_q      <= 1'b0;
 end
 else begin
     writeback_valid_q <= opcode_valid_i;
     if (opcode_valid_i) begin
         writeback_vd_idx_q <= opcode_vd_idx_i;
         writeback_value_q  <= v_result_w;
+        v_to_scalar_q      <= v_to_scalar_i;
     end
 end
 
-assign writeback_valid_o  = writeback_valid_q;
+assign writeback_valid_o = writeback_valid_q & ~v_to_scalar_q;
 assign writeback_vd_idx_o = writeback_vd_idx_q;
 assign writeback_value_o  = writeback_value_q;
+
+assign v_exec_scalar_value_o = writeback_value_q[31:0];
+assign v_exec_scalar_we_o    = writeback_valid_q & v_to_scalar_q;
+assign v_exec_scalar_rd_o    = writeback_vd_idx_q;
 
 endmodule

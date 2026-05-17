@@ -146,6 +146,10 @@ begin
             sum_r = sum_r + v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN];
             result_r = {{(VLEN-ELEN){1'b0}}, sum_r};
        end
+       `ALU_V_MV_X_S: 
+       begin
+          result_r = {{(VLEN-ELEN){1'b0}}, v_operand_vs2_i[ELEN-1:0]};
+       end
 
        default  :
             result_r = {VLEN{1'b0}};
