@@ -74,6 +74,7 @@ tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_invalid_w
 @28
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.exec_opcode_valid_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.v_alu_opcode_valid_o
+tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.v_lsu_busy_i
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.lsu_opcode_valid_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.csr_opcode_valid_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.mul_opcode_valid_o
@@ -186,6 +187,10 @@ tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4096][31:0]
 tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4097][31:0]
 tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4098][31:0]
 tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4099][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4100][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4101][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4102][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4103][31:0]
 @1000200
 -TCM_RESULT_4000
 @800200

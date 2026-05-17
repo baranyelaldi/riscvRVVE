@@ -270,7 +270,7 @@ wire [4:0] v_regfile_ra_idx_w = (issue_v_lsu_w && is_v_store_w) ? issue_rd_idx_w
 
 wire v_fwd_store_w = v_writeback_valid_i && issue_v_lsu_w && is_v_store_w && (v_writeback_vd_idx_i == issue_rd_idx_w);
 
-assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w & ~v_lsu_busy_i;
+assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w;
 assign v_lsu_is_store_o     = is_v_store_w;
 assign v_lsu_base_addr_o    = opcode_ra_operand_o;   // rs1 from scalar regfile
 assign v_lsu_store_data_o   = v_fwd_store_w ? v_writeback_value_i : v_ra0_value_w;         // vs3 read via vector regfile
@@ -471,7 +471,7 @@ begin
         scoreboard_r = 32'hFFFFFFFF;
 
     // Stall - no issues...
-    if (lsu_stall_i || stall_w || div_pending_q || csr_pending_q)
+    if (lsu_stall_i || stall_w || div_pending_q || csr_pending_q || v_lsu_busy_i)
         ;
     // Primary slot (lsu, branch, alu, mul, div, csr)
     else if (opcode_valid_w &&
@@ -489,12 +489,12 @@ end
 
 assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i;
 assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w;
-assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w & ~v_lsu_busy_i;
+assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w;
 assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
 assign interrupt_inhibit_o  = csr_pending_q || issue_csr_w;
 
-assign fetch_accept_o       = opcode_valid_w ? (opcode_accept_r & ~take_interrupt_i & ~v_lsu_busy_i) : 1'b1;
+assign fetch_accept_o       = opcode_valid_w ? (opcode_accept_r & ~take_interrupt_i) : 1'b1;
 
 assign stall_w              = pipe_stall_raw_w;
 
