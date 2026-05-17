@@ -14,7 +14,9 @@ NAME             ?= riscv_tcm_top
 RTL_INCLUDE       = ../../core/$(CORE)
 
 # Verilator options
-VERILATE_PARAMS  ?= --trace
+# --trace-max-array: default in V5.x is too low to capture the 16K-entry TCM
+# ram. Bumping it lets ram[N] show up in GTKWave under u_tcm.u_ram.
+VERILATE_PARAMS  ?= --trace --trace-max-array 16384
 VERILATOR_OPTS   ?= --pins-sc-uint
 
 OLDER_VERILATOR := $(shell verilator --l2-name v 2>&1 | grep "Invalid Option" | wc -l)

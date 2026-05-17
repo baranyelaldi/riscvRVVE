@@ -180,6 +180,15 @@ tb.DUT.Vriscv_tcm_top.v.u_core.u_v_lsu.writeback_value_o[127:0]
 @1000200
 -V_LSU_EXEC
 @800200
+-TCM_RESULT_4000
+@22
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4096][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4097][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4098][31:0]
+tb.DUT.Vriscv_tcm_top.v.u_tcm.u_ram.ram[4099][31:0]
+@1000200
+-TCM_RESULT_4000
+@800200
 -VECTOR_REGISTERS
 @22
 tb.DUT.Vriscv_tcm_top.v.u_core.u_issue.u_v_regfile.REGFILE.vregs_q[0][127:0]

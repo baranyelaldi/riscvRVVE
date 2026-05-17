@@ -267,10 +267,12 @@ assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_f
 //------------------------------------------------------------- 
 wire [4:0] v_regfile_ra_idx_w = (issue_v_lsu_w && is_v_store_w) ? issue_rd_idx_w : issue_ra_idx_w;
 
+wire v_fwd_store_w = v_writeback_valid_i && issue_v_lsu_w && is_v_store_w && (v_writeback_vd_idx_i == issue_rd_idx_w);
+
 assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w & ~v_lsu_busy_i;
 assign v_lsu_is_store_o     = is_v_store_w;
 assign v_lsu_base_addr_o    = opcode_ra_operand_o;   // rs1 from scalar regfile
-assign v_lsu_store_data_o   = v_ra0_value_w;         // vs3 read via vector regfile
+assign v_lsu_store_data_o   = v_fwd_store_w ? v_writeback_value_i : v_ra0_value_w;         // vs3 read via vector regfile
 assign v_lsu_vd_idx_o       = issue_rd_idx_w;        // vd for loads / vs3 idx for stores
 //-------------------------------------------------------------
 // Pipeline status tracking
@@ -541,7 +543,7 @@ u_v_regfile
     .rd0_value_i(v_writeback_value_i),
     .rd0_we_i(v_writeback_valid_i),
 
-    .ra0_i(issue_ra_idx_w),
+    .ra0_i(v_regfile_ra_idx_w),
     .rb0_i(issue_rb_idx_w),
     .ra0_value_o(v_ra0_value_w),
     .rb0_value_o(v_rb0_value_w)
