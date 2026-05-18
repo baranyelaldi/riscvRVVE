@@ -472,7 +472,7 @@ begin
         scoreboard_r = 32'hFFFFFFFF;
 
     // Stall - no issues...
-    if (lsu_stall_i || stall_w || div_pending_q || csr_pending_q || v_lsu_busy_i)
+    if (lsu_stall_i || stall_w || div_pending_q || csr_pending_q || v_lsu_busy_i || (issue_v_lsu_w && (pipe_load_e1_w || pipe_store_e1_w)))
         ;
     // Primary slot (lsu, branch, alu, mul, div, csr)
     else if (opcode_valid_w &&
