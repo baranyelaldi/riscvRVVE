@@ -85,6 +85,10 @@
 `define ALU_V_MSLE                              5'b10110  // vmsle.{vv,vx,vi}
 `define ALU_V_MSGTU                             5'b10111  // vmsgtu.{vx,vi}
 `define ALU_V_MSGT                              5'b11000  // vmsgt.{vx,vi}
+`define ALU_V_MAND                              5'b11001  // vmand.mm
+`define ALU_V_MOR                               5'b11010  // vmor.mm
+`define ALU_V_MXOR                              5'b11011  // vmxor.mm
+`define ALU_V_MNAND                             5'b11100  // vmand.mm
 
 //--------------------------------------------------------------------
 // Instructions Masks
@@ -309,6 +313,22 @@
 // vmsgt.vi
 `define INST_VMSGT_VI       32'h7e003057
 `define INST_VMSGT_VI_MASK  32'hfe00707f
+
+// vmand.mm - vector mask logicals
+`define INST_VMAND_MM       32'h66002057
+`define INST_VMAND_MM_MASK  32'hfe00707f
+
+// vmor.mm
+`define INST_VMOR_MM        32'h6a002057
+`define INST_VMOR_MM_MASK   32'hfe00707f
+
+// vmxor.mm
+`define INST_VMXOR_MM       32'h6e002057
+`define INST_VMXOR_MM_MASK  32'hfe00707f
+
+// vmnand.mm
+`define INST_VMNAND_MM      32'h76002057
+`define INST_VMNAND_MM_MASK 32'hfe00707f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007

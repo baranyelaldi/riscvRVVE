@@ -307,6 +307,38 @@ begin
                     result_r[i] = 1'b1;
           end
        end
+       //----------------------------------------------
+       // VMAND
+       //----------------------------------------------
+       `ALU_V_MAND: 
+       begin
+          result_r = {VLEN{1'b0}};
+          result_r[LANES-1:0] = v_operand_vs2_i[LANES-1:0] & v_operand_vs1_i[LANES-1:0];
+        end
+       //----------------------------------------------
+       // VMOR
+       //----------------------------------------------
+       `ALU_V_MOR: 
+       begin
+          result_r = {VLEN{1'b0}};
+          result_r[LANES-1:0] = v_operand_vs2_i[LANES-1:0] | v_operand_vs1_i[LANES-1:0];
+       end
+       //----------------------------------------------
+       // VMXOR
+       //----------------------------------------------
+        `ALU_V_MXOR: 
+        begin
+          result_r = {VLEN{1'b0}};
+          result_r[LANES-1:0] = v_operand_vs2_i[LANES-1:0] ^ v_operand_vs1_i[LANES-1:0];
+       end
+       //----------------------------------------------
+       // VMNAND
+       //----------------------------------------------
+       `ALU_V_MNAND: 
+       begin
+          result_r = {VLEN{1'b0}};
+          result_r[LANES-1:0] = ~(v_operand_vs2_i[LANES-1:0] & v_operand_vs1_i[LANES-1:0]);
+       end
 
        default  :
             result_r = {VLEN{1'b0}};

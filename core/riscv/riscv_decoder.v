@@ -115,7 +115,11 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VMSGTU_VI_MASK) == `INST_VMSGTU_VI)    ||
                     ((opcode_i & `INST_VMSGTU_VX_MASK) == `INST_VMSGTU_VX)    ||
                     ((opcode_i & `INST_VMSGT_VI_MASK) == `INST_VMSGT_VI)      ||
-                    ((opcode_i & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX);
+                    ((opcode_i & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX)      ||
+                    ((opcode_i & `INST_VMAND_MM_MASK) == `INST_VMAND_MM)      ||
+                    ((opcode_i & `INST_VMOR_MM_MASK) == `INST_VMOR_MM)        ||
+                    ((opcode_i & `INST_VMXOR_MM_MASK) == `INST_VMXOR_MM)      ||
+                    ((opcode_i & `INST_VMNAND_MM_MASK) == `INST_VMNAND_MM);
 
 wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||

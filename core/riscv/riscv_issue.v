@@ -280,6 +280,10 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VMSGTU_VX_MASK) == `INST_VMSGTU_VX) alu_v_func_r = `ALU_V_MSGTU;
     else if ((opcode_opcode_o & `INST_VMSGT_VI_MASK) == `INST_VMSGT_VI) alu_v_func_r = `ALU_V_MSGT;
     else if ((opcode_opcode_o & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX) alu_v_func_r = `ALU_V_MSGT;
+    else if ((opcode_opcode_o & `INST_VMAND_MM_MASK) == `INST_VMAND_MM) alu_v_func_r = `ALU_V_MAND;
+    else if ((opcode_opcode_o & `INST_VMOR_MM_MASK) == `INST_VMOR_MM) alu_v_func_r = `ALU_V_MOR;
+    else if ((opcode_opcode_o & `INST_VMXOR_MM_MASK) == `INST_VMXOR_MM) alu_v_func_r = `ALU_V_MXOR;
+    else if ((opcode_opcode_o & `INST_VMNAND_MM_MASK) == `INST_VMNAND_MM) alu_v_func_r = `ALU_V_MNAND;
 end
 
 assign alu_v_func_o = alu_v_func_r;
