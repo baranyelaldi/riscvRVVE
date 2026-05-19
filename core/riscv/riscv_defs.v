@@ -77,6 +77,14 @@
 `define ALU_V_AND                               5'b01110  // vand.{vv,vx,vi}
 `define ALU_V_OR                                5'b01111  // vor.{vv,vx,vi}
 `define ALU_V_XOR                               5'b10000  // vxor.{vv,vx,vi}
+`define ALU_V_MSEQ                              5'b10001  // vmseq.{vv,vx,vi}
+`define ALU_V_MSNE                              5'b10010  // vmsne.{vv,vx,vi}
+`define ALU_V_MSLTU                             5'b10011  // vmsltu.{vv,vx}
+`define ALU_V_MSLT                              5'b10100  // vmslt.{vv,vx}
+`define ALU_V_MSLEU                             5'b10101  // vmsleu.{vv,vx,vi}
+`define ALU_V_MSLE                              5'b10110  // vmsle.{vv,vx,vi}
+`define ALU_V_MSGTU                             5'b10111  // vmsgtu.{vx,vi}
+`define ALU_V_MSGT                              5'b11000  // vmsgt.{vx,vi}
 
 //--------------------------------------------------------------------
 // Instructions Masks
@@ -221,6 +229,86 @@
 // vxor.vi
 `define INST_VXOR_VI       32'h2e003057
 `define INST_VXOR_VI_MASK  32'hfe00707f
+
+// vmseq.vv — set if equal
+`define INST_VMSEQ_VV       32'h62000057
+`define INST_VMSEQ_VV_MASK  32'hfe00707f
+
+// vmseq.vx
+`define INST_VMSEQ_VX       32'h62004057
+`define INST_VMSEQ_VX_MASK  32'hfe00707f
+
+// vmseq.vi
+`define INST_VMSEQ_VI       32'h62003057
+`define INST_VMSEQ_VI_MASK  32'hfe00707f
+
+// vmsne — set if not equal
+`define INST_VMSNE_VV       32'h66000057
+`define INST_VMSNE_VV_MASK  32'hfe00707f
+
+// vmsne.vx
+`define INST_VMSNE_VX       32'h66004057
+`define INST_VMSNE_VX_MASK  32'hfe00707f
+
+// vmsne.vi
+`define INST_VMSNE_VI       32'h66003057
+`define INST_VMSNE_VI_MASK  32'hfe00707f
+
+// vmsltu.vv — set if less than (unsigned)
+`define INST_VMSLTU_VV      32'h6a000057
+`define INST_VMSLTU_VV_MASK  32'hfe00707f
+
+// vmsltu.vx
+`define INST_VMSLTU_VX      32'h6a004057
+`define INST_VMSLTU_VX_MASK  32'hfe00707f
+
+// vmslt.vv — set if less than (signed)
+`define INST_VMSLT_VV       32'h6e000057
+`define INST_VMSLT_VV_MASK  32'hfe00707f
+
+// vmslt.vx
+`define INST_VMSLT_VX       32'h6e004057
+`define INST_VMSLT_VX_MASK  32'hfe00707f
+
+// vmsleu.vv — set if less-or-equal (unsigned)
+`define INST_VMSLEU_VV      32'h72000057
+`define INST_VMSLEU_VV_MASK  32'hfe00707f
+
+// vmsleu.vx
+`define INST_VMSLEU_VX      32'h72004057
+`define INST_VMSLEU_VX_MASK  32'hfe00707f
+
+// vmsleu.vi
+`define INST_VMSLEU_VI      32'h72003057
+`define INST_VMSLEU_VI_MASK  32'hfe00707f
+
+// vmsle.vv — set if less-or-equal (signed)
+`define INST_VMSLE_VV       32'h76000057
+`define INST_VMSLE_VV_MASK  32'hfe00707f
+
+// vmsle.vx
+`define INST_VMSLE_VX       32'h76004057
+`define INST_VMSLE_VX_MASK  32'hfe00707f
+
+// vmsle.vi
+`define INST_VMSLE_VI       32'h76003057
+`define INST_VMSLE_VI_MASK  32'hfe00707f
+
+// vmsgtu.vx — set if greater than (unsigned)
+`define INST_VMSGTU_VX      32'h7a004057
+`define INST_VMSGTU_VX_MASK  32'hfe00707f
+
+// vmsgtu.vi
+`define INST_VMSGTU_VI      32'h7a003057
+`define INST_VMSGTU_VI_MASK  32'hfe00707f
+
+// vmsgt.vx — set if greater than (signed)
+`define INST_VMSGT_VX       32'h7e004057
+`define INST_VMSGT_VX_MASK  32'hfe00707f
+
+// vmsgt.vi
+`define INST_VMSGT_VI       32'h7e003057
+`define INST_VMSGT_VI_MASK  32'hfe00707f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007

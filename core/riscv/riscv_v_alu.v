@@ -211,6 +211,102 @@ begin
        // VXOR
        //----------------------------------------------
        `ALU_V_XOR: result_r = v_operand_vs1_i ^ v_operand_vs2_i;
+       //----------------------------------------------
+       // VMSEQ
+       //----------------------------------------------
+       `ALU_V_MSEQ: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] ==
+                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSNE
+       //----------------------------------------------
+       `ALU_V_MSNE: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] !=
+                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSLTU
+       //----------------------------------------------
+       `ALU_V_MSLTU: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <
+                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSLT
+       //----------------------------------------------
+       `ALU_V_MSLT: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) <
+                    $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSLEU
+       //----------------------------------------------
+       `ALU_V_MSLEU: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <=
+                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSLE
+       //----------------------------------------------
+       `ALU_V_MSLE: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) <=
+                    $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSGTU
+       //----------------------------------------------
+       `ALU_V_MSGTU:
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] >
+                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
+                    result_r[i] = 1'b1;
+          end
+       end
+       //----------------------------------------------
+       // VMSGT
+       //----------------------------------------------
+       `ALU_V_MSGT: 
+       begin
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) >
+                    $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
+                    result_r[i] = 1'b1;
+          end
+       end
 
        default  :
             result_r = {VLEN{1'b0}};

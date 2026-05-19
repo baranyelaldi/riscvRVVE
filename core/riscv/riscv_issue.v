@@ -260,6 +260,26 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VXOR_VV_MASK) == `INST_VXOR_VV) alu_v_func_r = `ALU_V_XOR;
     else if ((opcode_opcode_o & `INST_VXOR_VX_MASK) == `INST_VXOR_VX) alu_v_func_r = `ALU_V_XOR;
     else if ((opcode_opcode_o & `INST_VXOR_VI_MASK) == `INST_VXOR_VI) alu_v_func_r = `ALU_V_XOR;
+    else if ((opcode_opcode_o & `INST_VMSEQ_VV_MASK) == `INST_VMSEQ_VV) alu_v_func_r = `ALU_V_MSEQ;
+    else if ((opcode_opcode_o & `INST_VMSEQ_VX_MASK) == `INST_VMSEQ_VX) alu_v_func_r = `ALU_V_MSEQ;
+    else if ((opcode_opcode_o & `INST_VMSEQ_VI_MASK) == `INST_VMSEQ_VI) alu_v_func_r = `ALU_V_MSEQ;
+    else if ((opcode_opcode_o & `INST_VMSNE_VV_MASK) == `INST_VMSNE_VV) alu_v_func_r = `ALU_V_MSNE;
+    else if ((opcode_opcode_o & `INST_VMSNE_VX_MASK) == `INST_VMSNE_VX) alu_v_func_r = `ALU_V_MSNE;
+    else if ((opcode_opcode_o & `INST_VMSNE_VI_MASK) == `INST_VMSNE_VI) alu_v_func_r = `ALU_V_MSNE;
+    else if ((opcode_opcode_o & `INST_VMSLTU_VV_MASK) == `INST_VMSLTU_VV) alu_v_func_r = `ALU_V_MSLTU;
+    else if ((opcode_opcode_o & `INST_VMSLTU_VX_MASK) == `INST_VMSLTU_VX) alu_v_func_r = `ALU_V_MSLTU;
+    else if ((opcode_opcode_o & `INST_VMSLT_VV_MASK) == `INST_VMSLT_VV) alu_v_func_r = `ALU_V_MSLT;
+    else if ((opcode_opcode_o & `INST_VMSLT_VX_MASK) == `INST_VMSLT_VX) alu_v_func_r = `ALU_V_MSLT;
+    else if ((opcode_opcode_o & `INST_VMSLEU_VV_MASK) == `INST_VMSLEU_VV) alu_v_func_r = `ALU_V_MSLEU;
+    else if ((opcode_opcode_o & `INST_VMSLEU_VX_MASK) == `INST_VMSLEU_VX) alu_v_func_r = `ALU_V_MSLEU;
+    else if ((opcode_opcode_o & `INST_VMSLEU_VI_MASK) == `INST_VMSLEU_VI) alu_v_func_r = `ALU_V_MSLEU;
+    else if ((opcode_opcode_o & `INST_VMSLE_VV_MASK) == `INST_VMSLE_VV) alu_v_func_r = `ALU_V_MSLE;
+    else if ((opcode_opcode_o & `INST_VMSLE_VX_MASK) == `INST_VMSLE_VX) alu_v_func_r = `ALU_V_MSLE;
+    else if ((opcode_opcode_o & `INST_VMSLE_VI_MASK) == `INST_VMSLE_VI) alu_v_func_r = `ALU_V_MSLE;
+    else if ((opcode_opcode_o & `INST_VMSGTU_VI_MASK) == `INST_VMSGTU_VI) alu_v_func_r = `ALU_V_MSGTU;
+    else if ((opcode_opcode_o & `INST_VMSGTU_VX_MASK) == `INST_VMSGTU_VX) alu_v_func_r = `ALU_V_MSGTU;
+    else if ((opcode_opcode_o & `INST_VMSGT_VI_MASK) == `INST_VMSGT_VI) alu_v_func_r = `ALU_V_MSGT;
+    else if ((opcode_opcode_o & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX) alu_v_func_r = `ALU_V_MSGT;
 end
 
 assign alu_v_func_o = alu_v_func_r;

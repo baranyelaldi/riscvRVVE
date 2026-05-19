@@ -95,7 +95,27 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VOR_VI_MASK) == `INST_VOR_VI)          ||
                     ((opcode_i & `INST_VXOR_VV_MASK) == `INST_VXOR_VV)        ||
                     ((opcode_i & `INST_VXOR_VX_MASK) == `INST_VXOR_VX)        ||
-                    ((opcode_i & `INST_VXOR_VI_MASK) == `INST_VXOR_VI);
+                    ((opcode_i & `INST_VXOR_VI_MASK) == `INST_VXOR_VI)        ||
+                    ((opcode_i & `INST_VMSEQ_VV_MASK) == `INST_VMSEQ_VV)      ||
+                    ((opcode_i & `INST_VMSEQ_VX_MASK) == `INST_VMSEQ_VX)      ||
+                    ((opcode_i & `INST_VMSEQ_VI_MASK) == `INST_VMSEQ_VI)      ||
+                    ((opcode_i & `INST_VMSNE_VV_MASK) == `INST_VMSNE_VV)      ||
+                    ((opcode_i & `INST_VMSNE_VX_MASK) == `INST_VMSNE_VX)      ||
+                    ((opcode_i & `INST_VMSNE_VI_MASK) == `INST_VMSNE_VI)      ||
+                    ((opcode_i & `INST_VMSLTU_VV_MASK) == `INST_VMSLTU_VV)    ||
+                    ((opcode_i & `INST_VMSLTU_VX_MASK) == `INST_VMSLTU_VX)    ||
+                    ((opcode_i & `INST_VMSLT_VV_MASK) == `INST_VMSLT_VV)      ||
+                    ((opcode_i & `INST_VMSLT_VX_MASK) == `INST_VMSLT_VX)      ||
+                    ((opcode_i & `INST_VMSLEU_VV_MASK) == `INST_VMSLEU_VV)    ||
+                    ((opcode_i & `INST_VMSLEU_VX_MASK) == `INST_VMSLEU_VX)    ||
+                    ((opcode_i & `INST_VMSLEU_VI_MASK) == `INST_VMSLEU_VI)    ||
+                    ((opcode_i & `INST_VMSLE_VV_MASK) == `INST_VMSLE_VV)      ||
+                    ((opcode_i & `INST_VMSLE_VX_MASK) == `INST_VMSLE_VX)      ||
+                    ((opcode_i & `INST_VMSLE_VI_MASK) == `INST_VMSLE_VI)      ||
+                    ((opcode_i & `INST_VMSGTU_VI_MASK) == `INST_VMSGTU_VI)    ||
+                    ((opcode_i & `INST_VMSGTU_VX_MASK) == `INST_VMSGTU_VX)    ||
+                    ((opcode_i & `INST_VMSGT_VI_MASK) == `INST_VMSGT_VI)      ||
+                    ((opcode_i & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX);
 
 wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||
