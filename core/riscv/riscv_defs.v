@@ -89,6 +89,8 @@
 `define ALU_V_MOR                               5'b11010  // vmor.mm
 `define ALU_V_MXOR                              5'b11011  // vmxor.mm
 `define ALU_V_MNAND                             5'b11100  // vmand.mm
+`define ALU_V_CPOP                              5'b11101  // vcpop.m
+`define ALU_V_FIRST                             5'b11110  // vfirst.m
 
 //--------------------------------------------------------------------
 // Instructions Masks
@@ -329,6 +331,14 @@
 // vmnand.mm
 `define INST_VMNAND_MM      32'h76002057
 `define INST_VMNAND_MM_MASK 32'hfe00707f
+
+// vcpop.m
+`define INST_VCPOP_M        32'h42082057
+`define INST_VCPOP_M_MASK   32'hfe0ff07f
+
+// vfirst.m
+`define INST_VFIRST_M       32'h4208a057
+`define INST_VFIRST_M_MASK  32'hfe0ff07f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007

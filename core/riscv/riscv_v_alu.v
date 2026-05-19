@@ -339,6 +339,31 @@ begin
           result_r = {VLEN{1'b0}};
           result_r[LANES-1:0] = ~(v_operand_vs2_i[LANES-1:0] & v_operand_vs1_i[LANES-1:0]);
        end
+       //----------------------------------------------
+       // VCPOP
+       //----------------------------------------------
+       `ALU_V_CPOP: 
+       begin
+          // Count 1-bits in low LANES bits of vs2 (the mask)
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               result_r[31:0] = result_r[31:0] + {31'b0, v_operand_vs2_i[i]};
+          end
+       end
+       //----------------------------------------------
+       // VFIRST
+       //----------------------------------------------
+       `ALU_V_FIRST: 
+       begin
+          // Index of first 1-bit (LSB-first), or -1 if mask is empty
+          result_r = {VLEN{1'b0}};
+          result_r[31:0] = 32'hFFFFFFFF;          // default: no match
+          // Iterate high-to-low so the lowest set bit wins (last assignment)
+          for (i = LANES-1; i >= 0; i = i - 1) begin
+               if (v_operand_vs2_i[i])
+                    result_r[31:0] = i[31:0];
+          end
+       end
 
        default  :
             result_r = {VLEN{1'b0}};

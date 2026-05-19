@@ -119,7 +119,9 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VMAND_MM_MASK) == `INST_VMAND_MM)      ||
                     ((opcode_i & `INST_VMOR_MM_MASK) == `INST_VMOR_MM)        ||
                     ((opcode_i & `INST_VMXOR_MM_MASK) == `INST_VMXOR_MM)      ||
-                    ((opcode_i & `INST_VMNAND_MM_MASK) == `INST_VMNAND_MM);
+                    ((opcode_i & `INST_VMNAND_MM_MASK) == `INST_VMNAND_MM)    ||
+                    ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M)        ||
+                    ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M);
 
 wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||
@@ -239,6 +241,8 @@ assign rd_valid_o = ((opcode_i & `INST_JALR_MASK) == `INST_JALR)     ||
                     ((opcode_i & `INST_CSRRWI_MASK) == `INST_CSRRWI) ||
                     ((opcode_i & `INST_CSRRSI_MASK) == `INST_CSRRSI) ||
                     ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) ||
+                    ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M) ||
+                    ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M) ||
                     ((opcode_i & `INST_CSRRCI_MASK) == `INST_CSRRCI);
 
 assign exec_o =     ((opcode_i & `INST_ANDI_MASK) == `INST_ANDI)  ||
@@ -311,7 +315,9 @@ assign csr_o =      ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)            ||
 
 assign v_alu_o = v_alu_w;
 
-assign v_to_scalar_o = ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S);
+assign v_to_scalar_o = ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S)     ||
+                       ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M)     ||
+                       ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M);
 
 assign v_lsu_o = v_lsu_w;
 
