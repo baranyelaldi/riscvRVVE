@@ -58,6 +58,7 @@ module riscv_decoder
     ,output                       v_lsu_o
     ,output                       v_to_scalar_o
     ,output                       rd_valid_o
+    ,output [ 2:0]                sew_o
 );
 
 // Vector ALU instruction match (used by both invalid_w and v_alu_o)
@@ -322,5 +323,11 @@ assign v_to_scalar_o = ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S)     ||
                        ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M);
 
 assign v_lsu_o = v_lsu_w;
+
+assign sew_o = ((opcode_i & `INST_VLE8_V_MASK)  == `INST_VLE8_V)  ? 3'b000 :
+               ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V) ? 3'b101 :
+               ((opcode_i & `INST_VSE8_V_MASK)  == `INST_VSE8_V)  ? 3'b000 :
+               ((opcode_i & `INST_VSE16_V_MASK) == `INST_VSE16_V) ? 3'b101 :
+               3'b110;  // default e32
 
 endmodule

@@ -134,6 +134,7 @@ wire           fetch_dec_fault_page_w;
 wire  [ 31:0]  mul_opcode_opcode_w;
 wire           exec_hold_w;
 wire           fetch_instr_invalid_w;
+wire  [  2:0]  sew_w;
 wire  [ 31:0]  branch_pc_w;
 wire  [  4:0]  mul_opcode_ra_idx_w;
 wire  [  4:0]  csr_opcode_rb_idx_w;
@@ -367,6 +368,7 @@ u_decode
     ,.v_to_scalar_o(v_to_scalar_w)
     ,.fetch_out_instr_rd_valid_o(fetch_instr_rd_valid_w)
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
+    ,.sew_o(sew_w)
 );
 
 

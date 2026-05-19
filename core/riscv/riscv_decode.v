@@ -80,6 +80,7 @@ module riscv_decode
     ,output          v_to_scalar_o
     ,output          fetch_out_instr_rd_valid_o
     ,output          fetch_out_instr_invalid_o
+    ,output [ 2:0]   sew_o
 );
 
 
@@ -128,6 +129,7 @@ begin
         ,.v_lsu_o(fetch_out_instr_v_lsu_o)
         ,.v_to_scalar_o(v_to_scalar_o)
         ,.rd_valid_o(fetch_out_instr_rd_valid_o)
+        ,.sew_o(sew_o)
     );
 
     assign fetch_in_accept_o        = fetch_out_accept_i;
@@ -158,6 +160,7 @@ begin
         ,.v_lsu_o(fetch_out_instr_v_lsu_o)
         ,.v_to_scalar_o(v_to_scalar_o)
         ,.rd_valid_o(fetch_out_instr_rd_valid_o)
+        ,.sew_o(sew_o)
     );
 
     // Outputs
