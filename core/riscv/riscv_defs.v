@@ -71,6 +71,9 @@
 `define ALU_V_REDSUM                            4'b1000  // vredsum.vs (reduction to vd[0])
 `define ALU_V_MV_X_S                            4'b1001  // vmv.x.s
 `define ALU_V_MACC                              4'b1010  // vmacc.{vv,vx}
+`define ALU_V_SLL                               4'b1011  // vsll.{vv,vx,vi}
+`define ALU_V_SRL                               4'b1100  // vsrl.{vv,vx,vi}
+`define ALU_V_SRA                               4'b1101  // vsra.{vv,vx,vi}
 
 //--------------------------------------------------------------------
 // Instructions Masks
@@ -143,6 +146,42 @@
 // vmacc.vx — multiply-accumulate
 `define INST_VMACC_VX       32'hb6006057
 `define INST_VMACC_VX_MASK  32'hfe00707f
+
+// vxll.vv - vector shift left logical
+`define INST_VSLL_VV       32'h96000057
+`define INST_VSLL_VV_MASK  32'hfe00707f
+
+// vsll.vx
+`define INST_VSLL_VX       32'h96004057
+`define INST_VSLL_VX_MASK  32'hfe00707f
+
+// vsll.vi
+`define INST_VSLL_VI       32'h96003057
+`define INST_VSLL_VI_MASK  32'hfe00707f
+
+// vsrl.vv - vector shift right logical
+`define INST_VSRL_VV       32'ha2000057
+`define INST_VSRL_VV_MASK  32'hfe00707f
+
+// vsrl.vx
+`define INST_VSRL_VX       32'ha2004057
+`define INST_VSRL_VX_MASK  32'hfe00707f
+
+// vsrl.vi
+`define INST_VSRL_VI       32'ha2003057
+`define INST_VSRL_VI_MASK  32'hfe00707f
+
+// vsra.vv - vector shift right arithmetic
+`define INST_VSRA_VV       32'ha6000057
+`define INST_VSRA_VV_MASK  32'hfe00707f
+
+// vsra.vx
+`define INST_VSRA_VX       32'ha6004057
+`define INST_VSRA_VX_MASK  32'hfe00707f
+
+// vsra.vi
+`define INST_VSRA_VI       32'ha6003057
+`define INST_VSRA_VI_MASK  32'hfe00707f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007

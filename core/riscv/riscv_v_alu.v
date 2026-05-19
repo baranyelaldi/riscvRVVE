@@ -148,12 +148,15 @@ begin
             result_r = {{(VLEN-ELEN){1'b0}}, sum_r};
        end
        //----------------------------------------------
-       // VMVXS:
+       // VMVXS
        //----------------------------------------------
        `ALU_V_MV_X_S: 
        begin
           result_r = {{(VLEN-ELEN){1'b0}}, v_operand_vs2_i[ELEN-1:0]};
        end
+       //----------------------------------------------
+       // VMACC
+       //----------------------------------------------
        `ALU_V_MACC: 
        begin
           for (i=0; i<LANES; i=i+1) begin
@@ -161,6 +164,39 @@ begin
                     v_operand_vd_i[(i+1)*ELEN-1 -: ELEN] +
                     (v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] *
                     v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+          end
+       end
+       //----------------------------------------------
+       // VSLL
+       //----------------------------------------------
+       `ALU_V_SLL: 
+       begin
+          for (i = 0; i < LANES; i = i + 1) begin
+               result_r[(i+1)*ELEN-1 -: ELEN] =
+                    v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <<
+                    v_operand_vs1_i[i*ELEN +: 5];
+          end
+       end
+       //----------------------------------------------
+       // VSRL
+       //----------------------------------------------
+        `ALU_V_SRL: 
+        begin
+          for (i = 0; i < LANES; i = i + 1) begin
+               result_r[(i+1)*ELEN-1 -: ELEN] =
+                    v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] >>
+                    v_operand_vs1_i[i*ELEN +: 5];
+          end
+       end
+       //----------------------------------------------
+       // VSRA
+       //----------------------------------------------
+       `ALU_V_SRA: 
+       begin
+          for (i = 0; i < LANES; i = i + 1) begin
+               result_r[(i+1)*ELEN-1 -: ELEN] =
+                    $signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) >>>
+                    v_operand_vs1_i[i*ELEN +: 5];
           end
        end
 

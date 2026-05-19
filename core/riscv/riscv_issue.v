@@ -241,6 +241,16 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) alu_v_func_r = `ALU_V_MV_X_S;
     else if ((opcode_opcode_o & `INST_VMACC_VV_MASK) == `INST_VMACC_VV) alu_v_func_r = `ALU_V_MACC;
     else if ((opcode_opcode_o & `INST_VMACC_VX_MASK) == `INST_VMACC_VX) alu_v_func_r = `ALU_V_MACC;
+    else if ((opcode_opcode_o & `INST_VMACC_VX_MASK) == `INST_VMACC_VX) alu_v_func_r = `ALU_V_MACC;
+    else if ((opcode_opcode_o & `INST_VSLL_VV_MASK) == `INST_VSLL_VV) alu_v_func_r = `ALU_V_SLL;
+    else if ((opcode_opcode_o & `INST_VSLL_VX_MASK) == `INST_VSLL_VX) alu_v_func_r = `ALU_V_SLL;
+    else if ((opcode_opcode_o & `INST_VSLL_VI_MASK) == `INST_VSLL_VI) alu_v_func_r = `ALU_V_SLL;
+    else if ((opcode_opcode_o & `INST_VSRL_VV_MASK) == `INST_VSRL_VV) alu_v_func_r = `ALU_V_SRL;
+    else if ((opcode_opcode_o & `INST_VSRL_VX_MASK) == `INST_VSRL_VX) alu_v_func_r = `ALU_V_SRL;
+    else if ((opcode_opcode_o & `INST_VSRL_VI_MASK) == `INST_VSRL_VI) alu_v_func_r = `ALU_V_SRL;
+    else if ((opcode_opcode_o & `INST_VSRA_VV_MASK) == `INST_VSRA_VV) alu_v_func_r = `ALU_V_SRA;
+    else if ((opcode_opcode_o & `INST_VSRA_VX_MASK) == `INST_VSRA_VX) alu_v_func_r = `ALU_V_SRA;
+    else if ((opcode_opcode_o & `INST_VSRA_VI_MASK) == `INST_VSRA_VI) alu_v_func_r = `ALU_V_SRA;
 end
 
 assign alu_v_func_o = alu_v_func_r;
