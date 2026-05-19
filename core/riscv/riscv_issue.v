@@ -145,7 +145,7 @@ module riscv_issue
     ,output [VLEN-1:0] v_operand_vs1_o
     ,output [VLEN-1:0] v_operand_vs2_o
     ,output [VLEN-1:0] v_operand_vd_o
-    ,output [  3:0]  alu_v_func_o
+    ,output [  4:0]  alu_v_func_o
     ,output          v_lsu_is_store_o
     ,output [ 31:0]  v_lsu_base_addr_o
     ,output [VLEN-1:0] v_lsu_store_data_o
@@ -221,7 +221,7 @@ wire       is_v_store_w = issue_v_lsu_w && (opcode_opcode_o[5] == 1'b1);
 //-------------------------------------------------------------
 // V-ALU Function Decode
 //-------------------------------------------------------------
-reg [3:0] alu_v_func_r;
+reg [4:0] alu_v_func_r;
 always @* begin
     alu_v_func_r = `ALU_V_NONE;
     if      ((opcode_opcode_o & `INST_VADD_VV_MASK) == `INST_VADD_VV) alu_v_func_r = `ALU_V_ADD;
@@ -251,6 +251,15 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VSRA_VV_MASK) == `INST_VSRA_VV) alu_v_func_r = `ALU_V_SRA;
     else if ((opcode_opcode_o & `INST_VSRA_VX_MASK) == `INST_VSRA_VX) alu_v_func_r = `ALU_V_SRA;
     else if ((opcode_opcode_o & `INST_VSRA_VI_MASK) == `INST_VSRA_VI) alu_v_func_r = `ALU_V_SRA;
+    else if ((opcode_opcode_o & `INST_VAND_VV_MASK) == `INST_VAND_VV) alu_v_func_r = `ALU_V_AND;
+    else if ((opcode_opcode_o & `INST_VAND_VX_MASK) == `INST_VAND_VX) alu_v_func_r = `ALU_V_AND;
+    else if ((opcode_opcode_o & `INST_VAND_VI_MASK) == `INST_VAND_VI) alu_v_func_r = `ALU_V_AND;
+    else if ((opcode_opcode_o & `INST_VOR_VV_MASK) == `INST_VOR_VV)   alu_v_func_r = `ALU_V_OR;
+    else if ((opcode_opcode_o & `INST_VOR_VX_MASK) == `INST_VOR_VX)   alu_v_func_r = `ALU_V_OR;
+    else if ((opcode_opcode_o & `INST_VOR_VI_MASK) == `INST_VOR_VI)   alu_v_func_r = `ALU_V_OR;
+    else if ((opcode_opcode_o & `INST_VXOR_VV_MASK) == `INST_VXOR_VV) alu_v_func_r = `ALU_V_XOR;
+    else if ((opcode_opcode_o & `INST_VXOR_VX_MASK) == `INST_VXOR_VX) alu_v_func_r = `ALU_V_XOR;
+    else if ((opcode_opcode_o & `INST_VXOR_VI_MASK) == `INST_VXOR_VI) alu_v_func_r = `ALU_V_XOR;
 end
 
 assign alu_v_func_o = alu_v_func_r;

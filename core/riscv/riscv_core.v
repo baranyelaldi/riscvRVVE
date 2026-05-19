@@ -225,7 +225,7 @@ wire  [  4:0]  lsu_opcode_ra_idx_w;
 wire  [ 31:0]  csr_writeback_exception_pc_w;
 wire           mmu_store_fault_w;
 wire           branch_exec_is_call_w;
-wire  [  3:0]   alu_v_func_w;
+wire  [  4:0]   alu_v_func_w;
 wire [VLEN-1:0] v_operand_vs1_w;
 wire [VLEN-1:0] v_operand_vs2_w;
 wire [VLEN-1:0] v_operand_vd_w;

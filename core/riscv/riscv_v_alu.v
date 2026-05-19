@@ -46,7 +46,7 @@ module riscv_v_alu
 )
 (
     // Inputs
-     input  [  3:0]     alu_v_func_i
+     input  [  4:0]     alu_v_func_i
     ,input  [VLEN-1:0]  v_operand_vs1_i
     ,input  [VLEN-1:0]  v_operand_vs2_i
     ,input  [VLEN-1:0]  v_operand_vd_i
@@ -199,6 +199,18 @@ begin
                     v_operand_vs1_i[i*ELEN +: 5];
           end
        end
+       //----------------------------------------------
+       // VAND
+       //----------------------------------------------
+       `ALU_V_AND: result_r = v_operand_vs1_i & v_operand_vs2_i;
+       //----------------------------------------------
+       // VOR
+       //----------------------------------------------
+       `ALU_V_OR:  result_r = v_operand_vs1_i | v_operand_vs2_i;
+       //----------------------------------------------
+       // VXOR
+       //----------------------------------------------
+       `ALU_V_XOR: result_r = v_operand_vs1_i ^ v_operand_vs2_i;
 
        default  :
             result_r = {VLEN{1'b0}};

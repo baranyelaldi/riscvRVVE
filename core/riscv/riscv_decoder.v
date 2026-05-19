@@ -86,7 +86,16 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VSRL_VV_MASK) == `INST_VSRL_VV)        ||
                     ((opcode_i & `INST_VSRA_VI_MASK) == `INST_VSRA_VI)        ||
                     ((opcode_i & `INST_VSRA_VX_MASK) == `INST_VSRA_VX)        ||
-                    ((opcode_i & `INST_VSRA_VV_MASK) == `INST_VSRA_VV);
+                    ((opcode_i & `INST_VSRA_VV_MASK) == `INST_VSRA_VV)        ||
+                    ((opcode_i & `INST_VAND_VV_MASK) == `INST_VAND_VV)        ||
+                    ((opcode_i & `INST_VAND_VX_MASK) == `INST_VAND_VX)        ||
+                    ((opcode_i & `INST_VAND_VI_MASK) == `INST_VAND_VI)        ||
+                    ((opcode_i & `INST_VOR_VV_MASK) == `INST_VOR_VV)          ||
+                    ((opcode_i & `INST_VOR_VX_MASK) == `INST_VOR_VX)          ||
+                    ((opcode_i & `INST_VOR_VI_MASK) == `INST_VOR_VI)          ||
+                    ((opcode_i & `INST_VXOR_VV_MASK) == `INST_VXOR_VV)        ||
+                    ((opcode_i & `INST_VXOR_VX_MASK) == `INST_VXOR_VX)        ||
+                    ((opcode_i & `INST_VXOR_VI_MASK) == `INST_VXOR_VI);
 
 wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||
