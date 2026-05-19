@@ -1,6 +1,6 @@
 // Nexys A7 100T top-level wrapper for riscv_tcm_top.
 //
-// - TCM load port (axi_t_*) is tied off — program is pre-loaded into BRAM
+// - TCM load port (axi_t_*) is tied off - program is pre-loaded into BRAM
 //   at synthesis time via $readmemh in tcm_mem_ram.v.
 // - Peripheral port (axi_i_*) is connected to a UART TX at 0x8000_0000,
 //   matching the sim_putc convention used by assembly tests.
@@ -11,6 +11,20 @@ module nexys_top
     ,input  rst_n     // active-low CPU reset button, pin C2
     ,output uart_tx   // USB-UART TX to PC, pin D4
 );
+
+wire clk_50;
+wire locked;
+
+clk_wiz_0 u_clk
+(
+     .clk_in1  (clk)      // 100 MHz from pin E3
+     
+    ,.clk_out1 (clk_50)   // 50 MHz to CPU
+    ,.locked   (locked)   // high when clock is stable
+);
+
+// Hold CPU in reset until clock is locked
+wire rst_int = (~rst_n) | (~locked);
 
 // -----------------------------------------------------------------------
 // Wires from riscv_tcm_top peripheral master port
@@ -44,9 +58,9 @@ wire       uart_ready;
 reg        uart_valid_q;
 reg [7:0]  uart_data_q;
 
-always @(posedge clk)
+always @(posedge clk_50)
 begin
-    if (~rst_n)
+    if (rst_int)
     begin
         axi_state_q  <= AXI_IDLE;
         axi_awready_q <= 1'b0;
@@ -75,7 +89,7 @@ begin
             end
         end
 
-        // Handshake cycle — ready signals are high, UART has been kicked.
+        // Handshake cycle - ready signals are high, UART has been kicked.
         // Drop readys and raise bvalid for the response phase.
         AXI_ACC:
         begin
@@ -106,11 +120,11 @@ end
 // -----------------------------------------------------------------------
 riscv_tcm_top u_core
 (
-     .clk_i     (clk)
-    ,.rst_i     (~rst_n)
-    ,.rst_cpu_i (~rst_n)
+     .clk_i     (clk_50)
+    ,.rst_i     (rst_int)
+    ,.rst_cpu_i (rst_int)
 
-    // TCM load port — tied off, BRAM is pre-initialised at synthesis
+    // TCM load port - tied off, BRAM is pre-initialised at synthesis
     ,.axi_t_awvalid_i (1'b0)
     ,.axi_t_awaddr_i  (32'b0)
     ,.axi_t_awid_i    (4'b0)
@@ -128,7 +142,7 @@ riscv_tcm_top u_core
     ,.axi_t_arburst_i (2'b0)
     ,.axi_t_rready_i  (1'b1)
 
-    // Peripheral AXI4-Lite master port — connected to UART handshake above
+    // Peripheral AXI4-Lite master port - connected to UART handshake above
     ,.axi_i_awready_i (axi_awready_q)
     ,.axi_i_wready_i  (axi_wready_q)
     ,.axi_i_bvalid_i  (axi_bvalid_q)
@@ -152,13 +166,13 @@ riscv_tcm_top u_core
 // -----------------------------------------------------------------------
 uart_tx
 #(
-     .CLK_FREQ  (100_000_000)
+     .CLK_FREQ  (25_000_000)
     ,.BAUD_RATE (115_200)
 )
 u_uart
 (
-     .clk_i   (clk)
-    ,.rst_i   (~rst_n)
+     .clk_i   (clk_50)
+    ,.rst_i   (rst_int)
     ,.data_i  (uart_data_q)
     ,.valid_i (uart_valid_q)
     ,.ready_o (uart_ready)

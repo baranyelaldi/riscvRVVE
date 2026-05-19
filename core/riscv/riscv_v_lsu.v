@@ -92,7 +92,9 @@ localparam STATE_WAIT  = 3'd2;
 localparam STATE_DONE  = 3'd3;
 localparam STATE_ERROR = 3'd4;
 localparam BEATS = VLEN / 32; // 32 is hardcoded for bus, not for ELEN
+/* verilator lint_off WIDTHTRUNC */
 localparam [$clog2(BEATS):0] LAST_BEAT = BEATS - 1;
+/* verilator lint_on WIDTHTRUNC */
 
 
 reg [     2:0] state_q;
