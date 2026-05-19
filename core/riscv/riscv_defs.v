@@ -60,37 +60,39 @@
 // issue stage's job, the V-ALU just sees two pre-prepared vector inputs.
 // Lives on its own `alu_v_func_*` wire, separate from scalar `alu_func_*`.
 //--------------------------------------------------------------------
-`define ALU_V_NONE                              5'b00000
-`define ALU_V_ADD                               5'b00001  // vadd.{vv,vx,vi}
-`define ALU_V_SUB                               5'b00010  // vsub.{vv,vx}
-`define ALU_V_RSUB                              5'b00011  // vrsub.{vx,vi}
-`define ALU_V_MINU                              5'b00100  // vminu.{vv,vx}
-`define ALU_V_MAXU                              5'b00101  // vmaxu.{vv,vx}
-`define ALU_V_MUL                               5'b00110  // vmul.vv
-`define ALU_V_MV_X                              5'b00111  // vmv.v.x  (broadcast scalar)
-`define ALU_V_REDSUM                            5'b01000  // vredsum.vs (reduction to vd[0])
-`define ALU_V_MV_X_S                            5'b01001  // vmv.x.s
-`define ALU_V_MACC                              5'b01010  // vmacc.{vv,vx}
-`define ALU_V_SLL                               5'b01011  // vsll.{vv,vx,vi}
-`define ALU_V_SRL                               5'b01100  // vsrl.{vv,vx,vi}
-`define ALU_V_SRA                               5'b01101  // vsra.{vv,vx,vi}
-`define ALU_V_AND                               5'b01110  // vand.{vv,vx,vi}
-`define ALU_V_OR                                5'b01111  // vor.{vv,vx,vi}
-`define ALU_V_XOR                               5'b10000  // vxor.{vv,vx,vi}
-`define ALU_V_MSEQ                              5'b10001  // vmseq.{vv,vx,vi}
-`define ALU_V_MSNE                              5'b10010  // vmsne.{vv,vx,vi}
-`define ALU_V_MSLTU                             5'b10011  // vmsltu.{vv,vx}
-`define ALU_V_MSLT                              5'b10100  // vmslt.{vv,vx}
-`define ALU_V_MSLEU                             5'b10101  // vmsleu.{vv,vx,vi}
-`define ALU_V_MSLE                              5'b10110  // vmsle.{vv,vx,vi}
-`define ALU_V_MSGTU                             5'b10111  // vmsgtu.{vx,vi}
-`define ALU_V_MSGT                              5'b11000  // vmsgt.{vx,vi}
-`define ALU_V_MAND                              5'b11001  // vmand.mm
-`define ALU_V_MOR                               5'b11010  // vmor.mm
-`define ALU_V_MXOR                              5'b11011  // vmxor.mm
-`define ALU_V_MNAND                             5'b11100  // vmand.mm
-`define ALU_V_CPOP                              5'b11101  // vcpop.m
-`define ALU_V_FIRST                             5'b11110  // vfirst.m
+`define ALU_V_NONE                              6'b000000
+`define ALU_V_ADD                               6'b000001  // vadd.{vv,vx,vi}
+`define ALU_V_SUB                               6'b000010  // vsub.{vv,vx}
+`define ALU_V_RSUB                              6'b000011  // vrsub.{vx,vi}
+`define ALU_V_MINU                              6'b000100  // vminu.{vv,vx}
+`define ALU_V_MAXU                              6'b000101  // vmaxu.{vv,vx}
+`define ALU_V_MUL                               6'b000110  // vmul.vv
+`define ALU_V_MV_X                              6'b000111  // vmv.v.x  (broadcast scalar)
+`define ALU_V_REDSUM                            6'b001000  // vredsum.vs (reduction to vd[0])
+`define ALU_V_MV_X_S                            6'b001001  // vmv.x.s
+`define ALU_V_MACC                              6'b001010  // vmacc.{vv,vx}
+`define ALU_V_SLL                               6'b001011  // vsll.{vv,vx,vi}
+`define ALU_V_SRL                               6'b001100  // vsrl.{vv,vx,vi}
+`define ALU_V_SRA                               6'b001101  // vsra.{vv,vx,vi}
+`define ALU_V_AND                               6'b001110  // vand.{vv,vx,vi}
+`define ALU_V_OR                                6'b001111  // vor.{vv,vx,vi}
+`define ALU_V_XOR                               6'b010000  // vxor.{vv,vx,vi}
+`define ALU_V_MSEQ                              6'b010001  // vmseq.{vv,vx,vi}
+`define ALU_V_MSNE                              6'b010010  // vmsne.{vv,vx,vi}
+`define ALU_V_MSLTU                             6'b010011  // vmsltu.{vv,vx}
+`define ALU_V_MSLT                              6'b010100  // vmslt.{vv,vx}
+`define ALU_V_MSLEU                             6'b010101  // vmsleu.{vv,vx,vi}
+`define ALU_V_MSLE                              6'b010110  // vmsle.{vv,vx,vi}
+`define ALU_V_MSGTU                             6'b010111  // vmsgtu.{vx,vi}
+`define ALU_V_MSGT                              6'b011000  // vmsgt.{vx,vi}
+`define ALU_V_MAND                              6'b011001  // vmand.mm
+`define ALU_V_MOR                               6'b011010  // vmor.mm
+`define ALU_V_MXOR                              6'b011011  // vmxor.mm
+`define ALU_V_MNAND                             6'b011100  // vmand.mm
+`define ALU_V_CPOP                              6'b011101  // vcpop.m
+`define ALU_V_FIRST                             6'b011110  // vfirst.m
+`define ALU_V_MV_S_X                            6'b011111  // vmv.s.x
+`define ALU_V_VID                               6'b100000  // vid.v
 
 //--------------------------------------------------------------------
 // Instructions Masks
@@ -339,6 +341,14 @@
 // vfirst.m
 `define INST_VFIRST_M       32'h4208a057
 `define INST_VFIRST_M_MASK  32'hfe0ff07f
+
+// vmv.s.x - scalar to lane-0 move
+`define INST_VMV_S_X        32'h42006057
+`define INST_VMV_S_X_MASK   32'hfff0707f
+
+// vid.v - lane to index generator
+`define INST_VID_V          32'h5208a057
+`define INST_VID_V_MASK     32'hfffff07f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007

@@ -46,7 +46,7 @@ module riscv_v_alu
 )
 (
     // Inputs
-     input  [  4:0]     alu_v_func_i
+     input  [  5:0]     alu_v_func_i
     ,input  [VLEN-1:0]  v_operand_vs1_i
     ,input  [VLEN-1:0]  v_operand_vs2_i
     ,input  [VLEN-1:0]  v_operand_vd_i
@@ -362,6 +362,26 @@ begin
           for (i = LANES-1; i >= 0; i = i - 1) begin
                if (v_operand_vs2_i[i])
                     result_r[31:0] = i[31:0];
+          end
+       end
+       //----------------------------------------------
+       // VMVSX
+       //----------------------------------------------
+       `ALU_V_MV_S_X: 
+       begin
+          // Write rs1 to lane 0 only; zero other lanes (tail-agnostic)
+          result_r = {VLEN{1'b0}};
+          result_r[ELEN-1:0] = v_operand_vs1_i[ELEN-1:0];
+       end
+       //----------------------------------------------
+       // VID
+       //----------------------------------------------
+       `ALU_V_VID: 
+       begin
+          // vd[i] = i for each lane
+          result_r = {VLEN{1'b0}};
+          for (i = 0; i < LANES; i = i + 1) begin
+               result_r[(i+1)*ELEN-1 -: ELEN] = i[ELEN-1:0];
           end
        end
 

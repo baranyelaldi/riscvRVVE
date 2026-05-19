@@ -145,7 +145,7 @@ module riscv_issue
     ,output [VLEN-1:0] v_operand_vs1_o
     ,output [VLEN-1:0] v_operand_vs2_o
     ,output [VLEN-1:0] v_operand_vd_o
-    ,output [  4:0]  alu_v_func_o
+    ,output [  5:0]  alu_v_func_o
     ,output          v_lsu_is_store_o
     ,output [ 31:0]  v_lsu_base_addr_o
     ,output [VLEN-1:0] v_lsu_store_data_o
@@ -221,7 +221,7 @@ wire       is_v_store_w = issue_v_lsu_w && (opcode_opcode_o[5] == 1'b1);
 //-------------------------------------------------------------
 // V-ALU Function Decode
 //-------------------------------------------------------------
-reg [4:0] alu_v_func_r;
+reg [5:0] alu_v_func_r;
 always @* begin
     alu_v_func_r = `ALU_V_NONE;
     if      ((opcode_opcode_o & `INST_VADD_VV_MASK) == `INST_VADD_VV) alu_v_func_r = `ALU_V_ADD;
@@ -285,6 +285,8 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VMXOR_MM_MASK) == `INST_VMXOR_MM) alu_v_func_r = `ALU_V_MXOR;
     else if ((opcode_opcode_o & `INST_VCPOP_M_MASK) == `INST_VCPOP_M) alu_v_func_r = `ALU_V_CPOP;
     else if ((opcode_opcode_o & `INST_VFIRST_M_MASK) == `INST_VFIRST_M) alu_v_func_r = `ALU_V_FIRST;
+    else if ((opcode_opcode_o & `INST_VMV_S_X_MASK) == `INST_VMV_S_X) alu_v_func_r = `ALU_V_MV_S_X;
+    else if ((opcode_opcode_o & `INST_VID_V_MASK)   == `INST_VID_V)   alu_v_func_r = `ALU_V_VID;
 end
 
 assign alu_v_func_o = alu_v_func_r;
