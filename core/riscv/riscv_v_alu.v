@@ -49,6 +49,7 @@ module riscv_v_alu
      input  [  3:0]     alu_v_func_i
     ,input  [VLEN-1:0]  v_operand_vs1_i
     ,input  [VLEN-1:0]  v_operand_vs2_i
+    ,input  [VLEN-1:0]  v_operand_vd_i
 
     // Outputs
     ,output [VLEN-1:0]  v_result_o
@@ -146,9 +147,21 @@ begin
             sum_r = sum_r + v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN];
             result_r = {{(VLEN-ELEN){1'b0}}, sum_r};
        end
+       //----------------------------------------------
+       // VMVXS:
+       //----------------------------------------------
        `ALU_V_MV_X_S: 
        begin
           result_r = {{(VLEN-ELEN){1'b0}}, v_operand_vs2_i[ELEN-1:0]};
+       end
+       `ALU_V_MACC: 
+       begin
+          for (i=0; i<LANES; i=i+1) begin
+               result_r[(i+1)*ELEN-1 -: ELEN] =
+                    v_operand_vd_i[(i+1)*ELEN-1 -: ELEN] +
+                    (v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] *
+                    v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+          end
        end
 
        default  :

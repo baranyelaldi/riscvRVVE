@@ -70,6 +70,7 @@
 `define ALU_V_MV_X                              4'b0111  // vmv.v.x  (broadcast scalar)
 `define ALU_V_REDSUM                            4'b1000  // vredsum.vs (reduction to vd[0])
 `define ALU_V_MV_X_S                            4'b1001  // vmv.x.s
+`define ALU_V_MACC                              4'b1010  // vmacc.{vv,vx}
 
 //--------------------------------------------------------------------
 // Instructions Masks
@@ -131,9 +132,17 @@
 `define INST_VMV_V_X 32'h5c004057
 `define INST_VMV_V_X_MASK 32'hfc00707f
 
-// vmv.x.s rd, vs2
+// vmv.x.s
 `define INST_VMV_X_S       32'h42002057
 `define INST_VMV_X_S_MASK  32'hfe0ff07f
+
+// vmacc.vv
+`define INST_VMACC_VV       32'hb6002057
+`define INST_VMACC_VV_MASK  32'hfe00707f
+
+// vmacc.vx — multiply-accumulate
+`define INST_VMACC_VX       32'hb6006057
+`define INST_VMACC_VX_MASK  32'hfe00707f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007

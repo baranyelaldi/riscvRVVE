@@ -228,6 +228,7 @@ wire           branch_exec_is_call_w;
 wire  [  3:0]   alu_v_func_w;
 wire [VLEN-1:0] v_operand_vs1_w;
 wire [VLEN-1:0] v_operand_vs2_w;
+wire [VLEN-1:0] v_operand_vd_w;
 wire            v_writeback_valid_w;
 wire  [  4:0]   v_writeback_vd_idx_w;
 wire [VLEN-1:0] v_writeback_value_w;
@@ -318,6 +319,7 @@ u_v_exec
     ,.opcode_vd_idx_i(opcode_rd_idx_w)
     ,.v_operand_vs1_i(v_operand_vs1_w)
     ,.v_operand_vs2_i(v_operand_vs2_w)
+    ,.v_operand_vd_i(v_operand_vd_w)
     ,.alu_v_func_i(alu_v_func_w)
     ,.v_to_scalar_i(v_to_scalar_w)
 
@@ -737,6 +739,7 @@ u_issue
     ,.mul_opcode_rb_operand_o(mul_opcode_rb_operand_w)
     ,.v_operand_vs1_o(v_operand_vs1_w)
     ,.v_operand_vs2_o(v_operand_vs2_w)
+    ,.v_operand_vd_o(v_operand_vd_w)
     ,.alu_v_func_o(alu_v_func_w)
     ,.v_lsu_is_store_o(v_lsu_is_store_w)
     ,.v_lsu_base_addr_o(v_lsu_base_addr_w)

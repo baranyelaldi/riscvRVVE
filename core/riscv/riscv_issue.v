@@ -144,6 +144,7 @@ module riscv_issue
     ,output [ 31:0]  mul_opcode_rb_operand_o
     ,output [VLEN-1:0] v_operand_vs1_o
     ,output [VLEN-1:0] v_operand_vs2_o
+    ,output [VLEN-1:0] v_operand_vd_o
     ,output [  3:0]  alu_v_func_o
     ,output          v_lsu_is_store_o
     ,output [ 31:0]  v_lsu_base_addr_o
@@ -238,6 +239,8 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VMV_V_X_MASK) == `INST_VMV_V_X) alu_v_func_r = `ALU_V_MV_X;
     else if ((opcode_opcode_o & `INST_VREDSUM_VS_MASK) == `INST_VREDSUM_VS) alu_v_func_r = `ALU_V_REDSUM;
     else if ((opcode_opcode_o & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) alu_v_func_r = `ALU_V_MV_X_S;
+    else if ((opcode_opcode_o & `INST_VMACC_VV_MASK) == `INST_VMACC_VV) alu_v_func_r = `ALU_V_MACC;
+    else if ((opcode_opcode_o & `INST_VMACC_VX_MASK) == `INST_VMACC_VX) alu_v_func_r = `ALU_V_MACC;
 end
 
 assign alu_v_func_o = alu_v_func_r;
@@ -264,6 +267,7 @@ wire [VLEN-1:0] v_operand_vs2_pre_fwd_w = v_rb0_value_w;
 
 assign v_operand_vs1_o = v_fwd_vs1_w ? v_writeback_value_i : v_operand_vs1_pre_fwd_w;
 assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_fwd_w;
+assign v_operand_vd_o  = v_ra1_value_w;
 //-------------------------------------------------------------
 // V-LSU Operand Selection
 //------------------------------------------------------------- 
@@ -530,6 +534,7 @@ u_regfile
 
 wire [VLEN-1:0] v_ra0_value_w;
 wire [VLEN-1:0] v_rb0_value_w;
+wire [VLEN-1:0] v_ra1_value_w;
 // Vector Register file: 1W2R
 riscv_v_regfile
 #(
@@ -547,8 +552,10 @@ u_v_regfile
 
     .ra0_i(v_regfile_ra_idx_w),
     .rb0_i(issue_rb_idx_w),
+    .ra1_i(issue_rd_idx_w),
     .ra0_value_o(v_ra0_value_w),
-    .rb0_value_o(v_rb0_value_w)
+    .rb0_value_o(v_rb0_value_w),
+    .ra1_value_o(v_ra1_value_w)
 );
 
 //-------------------------------------------------------------
