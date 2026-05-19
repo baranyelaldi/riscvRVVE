@@ -72,6 +72,7 @@ module riscv_issue
     ,input           fetch_instr_csr_i
     ,input           fetch_instr_v_alu_i
     ,input           fetch_instr_v_lsu_i
+    ,input           fetch_instr_is_strided_i
     ,input           v_lsu_busy_i
     ,input           fetch_instr_rd_valid_i
     ,input           fetch_instr_invalid_i
@@ -150,6 +151,8 @@ module riscv_issue
     ,output [ 31:0]  v_lsu_base_addr_o
     ,output [VLEN-1:0] v_lsu_store_data_o
     ,output [  4:0]  v_lsu_vd_idx_o
+    ,output          v_lsu_is_strided_o
+    ,output [ 31:0]  v_lsu_stride_o
     ,output [ 31:0]  csr_opcode_opcode_o
     ,output [ 31:0]  csr_opcode_pc_o
     ,output          csr_opcode_invalid_o
@@ -326,6 +329,10 @@ assign v_lsu_is_store_o     = is_v_store_w;
 assign v_lsu_base_addr_o    = opcode_ra_operand_o;   // rs1 from scalar regfile
 assign v_lsu_store_data_o   = v_fwd_store_w ? v_writeback_value_i : v_ra0_value_w;         // vs3 read via vector regfile
 assign v_lsu_vd_idx_o       = issue_rd_idx_w;        // vd for loads / vs3 idx for stores
+
+wire issue_is_strided_w     = fetch_instr_is_strided_i;
+assign v_lsu_is_strided_o   = issue_is_strided_w;
+assign v_lsu_stride_o       = opcode_rb_operand_o; 
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 

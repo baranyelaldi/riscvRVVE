@@ -366,6 +366,10 @@
 `define INST_VLE64_V      32'h00007007
 `define INST_VLE64_V_MASK 32'hfdf0707f
 
+// vlse32.v - strided load
+`define INST_VLSE32_V       32'h08006007
+`define INST_VLSE32_V_MASK  32'hfc00707f
+
 // vse8.v
 `define INST_VSE8_V       32'h00000027
 `define INST_VSE8_V_MASK  32'hfdf0707f
@@ -381,6 +385,10 @@
 // vse64.v
 `define INST_VSE64_V      32'h00007027
 `define INST_VSE64_V_MASK 32'hfdf0707f
+
+// vsse32.v - strided store
+`define INST_VSSE32_V       32'h08006027
+`define INST_VSSE32_V_MASK  32'hfc00707f
 
 // andi
 `define INST_ANDI 32'h7013

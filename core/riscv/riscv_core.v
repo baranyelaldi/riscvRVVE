@@ -204,6 +204,8 @@ wire           fetch_instr_csr_w;
 wire           fetch_instr_v_alu_w;
 wire           fetch_instr_v_lsu_w;
 wire           v_to_scalar_w;
+wire           fetch_instr_is_strided_w;
+wire           v_lsu_is_strided_w;
 wire           lsu_opcode_valid_w;
 wire  [ 31:0]  fetch_dec_instr_w;
 wire           csr_result_e1_write_w;
@@ -238,6 +240,7 @@ wire             v_lsu_is_store_w;
 wire [   31:0]   v_lsu_base_addr_w;
 wire [VLEN-1:0]  v_lsu_store_data_w;
 wire [    4:0]   v_lsu_vd_idx_w;
+wire [   31:0]   v_lsu_stride_w;
 wire             v_lsu_busy_w;
 wire [   31:0]   v_lsu_mem_addr_w;
 wire [   31:0]   v_lsu_mem_data_wr_w;
@@ -369,6 +372,7 @@ u_decode
     ,.fetch_out_instr_rd_valid_o(fetch_instr_rd_valid_w)
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
     ,.sew_o(sew_w)
+    ,.fetch_out_instr_is_strided_o(fetch_instr_is_strided_w)
 );
 
 
@@ -499,6 +503,8 @@ u_v_lsu
     ,.is_store_i         (v_lsu_is_store_w)
     ,.base_addr_i        (v_lsu_base_addr_w)
     ,.store_data_i       (v_lsu_store_data_w)
+    ,.is_strided_i       (v_lsu_is_strided_w)
+    ,.stride_i           (v_lsu_stride_w)
 
     // Memory interface (private wires; muxed below)
     ,.mem_data_rd_i      (mmu_lsu_data_rd_w)   // shared with scalar — see 6c
@@ -668,6 +674,7 @@ u_issue
     ,.fetch_instr_csr_i(fetch_instr_csr_w)
     ,.fetch_instr_v_alu_i(fetch_instr_v_alu_w)
     ,.fetch_instr_v_lsu_i(fetch_instr_v_lsu_w)
+    ,.fetch_instr_is_strided_i(fetch_instr_is_strided_w)
     ,.v_lsu_busy_i(v_lsu_busy_w)
     ,.fetch_instr_rd_valid_i(fetch_instr_rd_valid_w)
     ,.fetch_instr_invalid_i(fetch_instr_invalid_w)
@@ -747,6 +754,8 @@ u_issue
     ,.v_lsu_base_addr_o(v_lsu_base_addr_w)
     ,.v_lsu_store_data_o(v_lsu_store_data_w)
     ,.v_lsu_vd_idx_o(v_lsu_vd_idx_w)
+    ,.v_lsu_is_strided_o(v_lsu_is_strided_w)
+    ,.v_lsu_stride_o(v_lsu_stride_w)
     ,.csr_opcode_opcode_o(csr_opcode_opcode_w)
     ,.csr_opcode_pc_o(csr_opcode_pc_w)
     ,.csr_opcode_invalid_o(csr_opcode_invalid_w)

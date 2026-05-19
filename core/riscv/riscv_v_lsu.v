@@ -65,6 +65,8 @@ module riscv_v_lsu
     ,input           mem_accept_i
     ,input           mem_ack_i
     ,input           mem_error_i
+    ,input           is_strided_i
+    ,input  [ 31:0]  stride_i
 
     // Outputs
     ,output [ 31:0]  mem_addr_o
@@ -101,6 +103,8 @@ reg [VLEN-1:0] buffer_q;
 reg [     4:0] vd_idx_q;
 reg            is_load_q;
 reg [$clog2(BEATS):0] beat_q;
+reg [31:0] stride_q;
+reg        is_strided_q;
 
 wire last_beat_w;
 assign last_beat_w = (beat_q == LAST_BEAT);
@@ -151,6 +155,8 @@ always @(posedge clk_i or posedge rst_i) begin
         is_load_q <= 1'b0;
         beat_q <= {$clog2(BEATS)+1{1'b0}};
         buffer_q <= {VLEN{1'b0}};
+        stride_q <= 32'b0;
+        is_strided_q <= 1'b0;
     end
     else begin
         state_q <= next_state_r;
@@ -163,6 +169,8 @@ always @(posedge clk_i or posedge rst_i) begin
                     is_load_q <= !is_store_i;
                     beat_q <= {$clog2(BEATS)+1{1'b0}};
                     buffer_q <= is_store_i ? store_data_i : {VLEN{1'b0}};
+                    stride_q <= stride_i;
+                    is_strided_q <= is_strided_i;
                 end
             end 
 
@@ -172,7 +180,7 @@ always @(posedge clk_i or posedge rst_i) begin
                         buffer_q[beat_q*32 +: 32] <= mem_data_rd_i;
                     end
                     beat_q <= beat_q + 1'b1;
-                    addr_q <= addr_q + 32'd4;
+                    addr_q <= addr_q + (is_strided_q ? stride_q : 32'd4);
                 end
             end
 
