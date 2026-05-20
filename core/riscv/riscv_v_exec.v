@@ -56,6 +56,7 @@ module riscv_v_exec
     ,input  [VLEN-1:0]  v_operand_vd_i
     ,input  [ 5:0]      alu_v_func_i
     ,input              v_to_scalar_i
+    ,input [  31:0]     vl_i
 
     // Outputs
     ,output             writeback_valid_o
@@ -88,6 +89,7 @@ u_v_alu
     .v_operand_vs1_i(v_operand_vs1_i),
     .v_operand_vs2_i(v_operand_vs2_i),
     .v_operand_vd_i(v_operand_vd_i),
+    .vl_i(vl_i),
     .v_result_o(v_result_w)
 );
 

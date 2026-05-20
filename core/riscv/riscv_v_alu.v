@@ -50,6 +50,7 @@ module riscv_v_alu
     ,input  [VLEN-1:0]  v_operand_vs1_i
     ,input  [VLEN-1:0]  v_operand_vs2_i
     ,input  [VLEN-1:0]  v_operand_vd_i
+    ,input  [ 31:0]     vl_i
 
     // Outputs
     ,output [VLEN-1:0]  v_result_o
@@ -83,33 +84,45 @@ begin
        //----------------------------------------------
        `ALU_V_ADD:
        begin
-            for (i=0; i<LANES; i=i+1)
+            result_r = {VLEN{1'b0}};
+            for (i=0; i<LANES; i=i+1) begin
+            if(i < vl_i)
             result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] + v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN];
+            end
        end
        //----------------------------------------------
        // VSUB: vd[i] = vs2[i] - vs1[i]
        //----------------------------------------------
        `ALU_V_SUB:
        begin
-            for (i=0; i<LANES; i=i+1)
+            result_r = {VLEN{1'b0}};
+            for (i=0; i<LANES; i=i+1) begin
+            if(i < vl_i)
             result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] - v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN];
+            end
        end
        //----------------------------------------------
        // VRSUB: vd[i] = vs1[i] - vs2[i]
        //----------------------------------------------
        `ALU_V_RSUB:
        begin
-            for (i=0; i<LANES; i=i+1)
+            result_r = {VLEN{1'b0}};
+            for (i=0; i<LANES; i=i+1) begin
+            if(i < vl_i)   
             result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] - v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN];
+            end
        end
        //----------------------------------------------
        // VMINU: vd[i] = (vs1[i] < vs2[i]) ? vs1[i] : vs2[i] - unsigned
        //----------------------------------------------
        `ALU_V_MINU:
        begin
+            result_r = {VLEN{1'b0}};
             for (i=0; i<LANES; i=i+1) begin
+                if(i < vl_i) begin 
                 result_r[(i+1)*ELEN-1 -: ELEN] = ((v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] < v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN])
                 ? v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] : v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+                end
             end
        end
        //----------------------------------------------
@@ -117,9 +130,12 @@ begin
        //----------------------------------------------
        `ALU_V_MAXU:
        begin
+            result_r = {VLEN{1'b0}};
             for (i=0; i<LANES; i=i+1) begin
+                if(i < vl_i) begin 
                 result_r[(i+1)*ELEN-1 -: ELEN] = ((v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] > v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN])
                 ? v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] : v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+                end
             end
        end
        //----------------------------------------------
@@ -127,15 +143,22 @@ begin
        //----------------------------------------------
        `ALU_V_MUL:
        begin
-            for (i=0; i<LANES; i=i+1)
+            result_r = {VLEN{1'b0}};
+            for (i=0; i<LANES; i=i+1) begin
+            if(i < vl_i)
             result_r[(i+1)*ELEN-1 -: ELEN] = $signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) * $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]);
+            end
        end
        //----------------------------------------------
        // VMVX: vd[i] = vs1
        //----------------------------------------------
-       `ALU_V_MV_X:
+       `ALU_V_MV_X: 
        begin
-            result_r = v_operand_vs1_i;
+            result_r = {VLEN{1'b0}};
+            for (i = 0; i < LANES; i = i + 1) begin
+            if (i < vl_i)
+            result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs1_i[ELEN-1:0];
+            end
        end
        //----------------------------------------------
        // VREDSUM: vd[0] = vs1[0] + sum vs2[i]
@@ -159,11 +182,14 @@ begin
        //----------------------------------------------
        `ALU_V_MACC: 
        begin
+          result_r = {VLEN{1'b0}};
           for (i=0; i<LANES; i=i+1) begin
+               if(i < vl_i) begin
                result_r[(i+1)*ELEN-1 -: ELEN] =
                     v_operand_vd_i[(i+1)*ELEN-1 -: ELEN] +
                     (v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] *
                     v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+               end
           end
        end
        //----------------------------------------------
@@ -171,10 +197,13 @@ begin
        //----------------------------------------------
        `ALU_V_SLL: 
        begin
+          result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if(i < vl_i) begin
                result_r[(i+1)*ELEN-1 -: ELEN] =
                     v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <<
                     v_operand_vs1_i[i*ELEN +: 5];
+               end
           end
        end
        //----------------------------------------------
@@ -182,10 +211,13 @@ begin
        //----------------------------------------------
         `ALU_V_SRL: 
         begin
+          result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if(i < vl_i) begin
                result_r[(i+1)*ELEN-1 -: ELEN] =
                     v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] >>
                     v_operand_vs1_i[i*ELEN +: 5];
+               end
           end
        end
        //----------------------------------------------
@@ -193,24 +225,42 @@ begin
        //----------------------------------------------
        `ALU_V_SRA: 
        begin
+          result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if(i < vl_i) begin
                result_r[(i+1)*ELEN-1 -: ELEN] =
                     $signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) >>>
                     v_operand_vs1_i[i*ELEN +: 5];
+               end
           end
        end
        //----------------------------------------------
        // VAND
        //----------------------------------------------
-       `ALU_V_AND: result_r = v_operand_vs1_i & v_operand_vs2_i;
+       `ALU_V_AND: 
+       begin
+          result_r = {VLEN{1'b0}};
+          if(i < vl_i) 
+               result_r = v_operand_vs1_i & v_operand_vs2_i;
+       end
        //----------------------------------------------
        // VOR
        //----------------------------------------------
-       `ALU_V_OR:  result_r = v_operand_vs1_i | v_operand_vs2_i;
+       `ALU_V_OR:
+       begin
+          result_r = {VLEN{1'b0}};
+          if(i < vl_i) 
+               result_r = v_operand_vs1_i | v_operand_vs2_i;
+       end
        //----------------------------------------------
        // VXOR
        //----------------------------------------------
-       `ALU_V_XOR: result_r = v_operand_vs1_i ^ v_operand_vs2_i;
+       `ALU_V_XOR:
+       begin
+          result_r = {VLEN{1'b0}};
+          if(i < vl_i) 
+               result_r = v_operand_vs1_i ^ v_operand_vs2_i;
+       end
        //----------------------------------------------
        // VMSEQ
        //----------------------------------------------
@@ -218,9 +268,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] ==
                     v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -230,9 +282,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] !=
                     v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -242,9 +296,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <
                     v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -254,9 +310,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) <
                     $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -266,9 +324,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <=
                     v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -278,9 +338,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) <=
                     $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -290,9 +352,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] >
                     v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -302,9 +366,11 @@ begin
        begin
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
                if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) >
                     $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
                     result_r[i] = 1'b1;
+               end
           end
        end
        //----------------------------------------------
@@ -313,23 +379,35 @@ begin
        `ALU_V_MAND: 
        begin
           result_r = {VLEN{1'b0}};
-          result_r[LANES-1:0] = v_operand_vs2_i[LANES-1:0] & v_operand_vs1_i[LANES-1:0];
-        end
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
+               result_r[i] = v_operand_vs2_i[i] & v_operand_vs1_i[i];
+               end
+          end
+       end
        //----------------------------------------------
        // VMOR
        //----------------------------------------------
        `ALU_V_MOR: 
        begin
           result_r = {VLEN{1'b0}};
-          result_r[LANES-1:0] = v_operand_vs2_i[LANES-1:0] | v_operand_vs1_i[LANES-1:0];
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
+               result_r[i] = v_operand_vs2_i[i] | v_operand_vs1_i[i];
+               end
+          end
        end
        //----------------------------------------------
        // VMXOR
        //----------------------------------------------
-        `ALU_V_MXOR: 
-        begin
+       `ALU_V_MXOR: 
+       begin
           result_r = {VLEN{1'b0}};
-          result_r[LANES-1:0] = v_operand_vs2_i[LANES-1:0] ^ v_operand_vs1_i[LANES-1:0];
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
+               result_r[i] = v_operand_vs2_i[i] ^ v_operand_vs1_i[i];
+               end
+          end
        end
        //----------------------------------------------
        // VMNAND
@@ -337,7 +415,11 @@ begin
        `ALU_V_MNAND: 
        begin
           result_r = {VLEN{1'b0}};
-          result_r[LANES-1:0] = ~(v_operand_vs2_i[LANES-1:0] & v_operand_vs1_i[LANES-1:0]);
+          for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i) begin
+               result_r[i] = ~(v_operand_vs2_i[i] & v_operand_vs1_i[i]);
+               end
+          end
        end
        //----------------------------------------------
        // VCPOP
@@ -371,6 +453,7 @@ begin
        begin
           // Write rs1 to lane 0 only; zero other lanes (tail-agnostic)
           result_r = {VLEN{1'b0}};
+          if (vl_i > 0)
           result_r[ELEN-1:0] = v_operand_vs1_i[ELEN-1:0];
        end
        //----------------------------------------------
@@ -381,6 +464,7 @@ begin
           // vd[i] = i for each lane
           result_r = {VLEN{1'b0}};
           for (i = 0; i < LANES; i = i + 1) begin
+               if (i < vl_i)
                result_r[(i+1)*ELEN-1 -: ELEN] = i[ELEN-1:0];
           end
        end

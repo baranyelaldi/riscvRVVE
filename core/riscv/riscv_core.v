@@ -327,6 +327,7 @@ u_v_exec
     ,.v_operand_vd_i(v_operand_vd_w)
     ,.alu_v_func_i(alu_v_func_w)
     ,.v_to_scalar_i(v_to_scalar_w)
+    ,.vl_i(csr_vl_current_w)
 
     ,.writeback_valid_o(v_writeback_valid_w)
     ,.writeback_vd_idx_o(v_writeback_vd_idx_w)
