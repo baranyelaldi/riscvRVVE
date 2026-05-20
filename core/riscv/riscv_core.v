@@ -558,6 +558,7 @@ riscv_csr
 #(
      .SUPPORT_SUPER(SUPPORT_SUPER)
     ,.SUPPORT_MULDIV(SUPPORT_MULDIV)
+    ,.VLEN(VLEN)
 )
 u_csr
 (

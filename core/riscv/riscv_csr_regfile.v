@@ -44,7 +44,8 @@ module riscv_csr_regfile
 //-----------------------------------------------------------------
 #(
      parameter SUPPORT_MTIMECMP    = 1,
-     parameter SUPPORT_SUPER       = 0
+     parameter SUPPORT_SUPER       = 0,
+     parameter VLEN                = 128
 )
 //-----------------------------------------------------------------
 // Ports
@@ -129,6 +130,9 @@ reg [31:0] m_interrupts_r;
 reg        s_enabled_r;
 reg [31:0] s_interrupts_r;
 
+reg [31:0]  csr_vl_q;
+reg [31:0]  csr_vtype_q;
+
 always @ *
 begin
     if (SUPPORT_SUPER)
@@ -208,6 +212,9 @@ begin
     `CSR_STVAL:    rdata_r = SUPPORT_SUPER ? (csr_stval_q    & `CSR_STVAL_MASK)    : 32'b0;
     `CSR_SATP:     rdata_r = SUPPORT_SUPER ? (csr_satp_q     & `CSR_SATP_MASK)     : 32'b0;
     `CSR_SSCRATCH: rdata_r = SUPPORT_SUPER ? (csr_sscratch_q & `CSR_SSCRATCH_MASK) : 32'b0;
+    `CSR_VL: rdata_r = csr_vl_q;
+    `CSR_VTYPE: rdata_r = csr_vtype_q;
+    `CSR_VLENB: rdata_r = VLEN / 8;
     default:       rdata_r = 32'b0;
     endcase
 end
@@ -523,6 +530,8 @@ begin
     csr_sscratch_q     <= 32'b0;
 
     csr_mip_next_q     <= 32'b0;
+    csr_vl_q           <= VLEN / 32;
+    csr_vtype_q        <= `VTYPE_RESET;
 end
 else
 begin

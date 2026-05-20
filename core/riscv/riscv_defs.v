@@ -95,6 +95,29 @@
 `define ALU_V_VID                               6'b100000  // vid.v
 
 //--------------------------------------------------------------------
+// Vector CSRs for RVV 1.0
+//--------------------------------------------------------------------
+`define CSR_VSTART       12'h008      // not implemented; reads return 0
+`define CSR_VXSAT        12'h009      // not implemented
+`define CSR_VXRM         12'h00A      // not implemented
+`define CSR_VCSR         12'h00F      // not implemented
+`define CSR_VL           12'hC20      // read-only via csrr; written by vsetvli
+`define CSR_VTYPE        12'hC21      // read-only via csrr; written by vsetvli
+`define CSR_VLENB        12'hC22      // constant = VLEN/8
+
+//--------------------------------------------------------------------
+// Vector CSRs Field Layout
+//--------------------------------------------------------------------
+`define VTYPE_VILL_BIT   31
+`define VTYPE_VMA_BIT    7
+`define VTYPE_VTA_BIT    6
+`define VTYPE_VSEW_HIGH  5
+`define VTYPE_VSEW_LOW   3
+`define VTYPE_VLMUL_HIGH 2
+`define VTYPE_VLMUL_LOW  0
+`define VTYPE_RESET      32'h000000C2  // vill=0, vma=1, vta=1, vsew=010 (e32), vlmul=000 (m1)
+
+//--------------------------------------------------------------------
 // Instructions Masks
 //--------------------------------------------------------------------
 

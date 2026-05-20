@@ -46,6 +46,7 @@ module riscv_csr
 #(
      parameter SUPPORT_MULDIV   = 1
     ,parameter SUPPORT_SUPER    = 1
+    ,parameter VLEN             = 128
 )
 //-----------------------------------------------------------------
 // Ports
@@ -167,7 +168,8 @@ wire [31:0] satp_reg_w;
 
 riscv_csr_regfile
 #( .SUPPORT_MTIMECMP(1)
-  ,.SUPPORT_SUPER(SUPPORT_SUPER) )
+  ,.SUPPORT_SUPER(SUPPORT_SUPER) 
+  ,.VLEN(VLEN))
 u_csrfile
 (
      .clk_i(clk_i)
