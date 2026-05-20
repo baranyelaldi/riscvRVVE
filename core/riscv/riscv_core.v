@@ -508,6 +508,7 @@ u_v_lsu
     ,.store_data_i       (v_lsu_store_data_w)
     ,.is_strided_i       (v_lsu_is_strided_w)
     ,.stride_i           (v_lsu_stride_w)
+    ,.vl_i               (csr_vl_current_w)
 
     // Memory interface (private wires; muxed below)
     ,.mem_data_rd_i      (mmu_lsu_data_rd_w)   // shared with scalar — see 6c

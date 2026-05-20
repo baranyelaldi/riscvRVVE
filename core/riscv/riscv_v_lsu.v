@@ -67,6 +67,7 @@ module riscv_v_lsu
     ,input           mem_error_i
     ,input           is_strided_i
     ,input  [ 31:0]  stride_i
+    ,input  [ 31:0]  vl_i
 
     // Outputs
     ,output [ 31:0]  mem_addr_o
@@ -105,9 +106,11 @@ reg            is_load_q;
 reg [$clog2(BEATS):0] beat_q;
 reg [31:0] stride_q;
 reg        is_strided_q;
+reg [31:0] vl_q;
 
 wire last_beat_w;
-assign last_beat_w = (beat_q == LAST_BEAT);
+wire [$clog2(BEATS):0] vl_short = vl_q[$clog2(BEATS):0];
+assign last_beat_w = (beat_q == (vl_short - 1'b1));
 
 //-----------------------------------------------------------------
 // Next State
@@ -118,7 +121,10 @@ always @* begin
     next_state_r = state_q;
     case(state_q)
         STATE_IDLE: begin
-            if (opcode_valid_i) next_state_r = STATE_REQ;
+            if (opcode_valid_i) begin
+                if (vl_i == 32'b0) next_state_r = STATE_DONE;
+                else next_state_r = STATE_REQ;
+            end
         end
         STATE_REQ: begin
             if (mem_accept_i) next_state_r = STATE_WAIT;
@@ -157,6 +163,7 @@ always @(posedge clk_i or posedge rst_i) begin
         buffer_q <= {VLEN{1'b0}};
         stride_q <= 32'b0;
         is_strided_q <= 1'b0;
+        vl_q <= 32'b0;
     end
     else begin
         state_q <= next_state_r;
@@ -171,6 +178,7 @@ always @(posedge clk_i or posedge rst_i) begin
                     buffer_q <= is_store_i ? store_data_i : {VLEN{1'b0}};
                     stride_q <= stride_i;
                     is_strided_q <= is_strided_i;
+                    vl_q <= vl_i;
                 end
             end 
 
