@@ -254,7 +254,9 @@ assign rd_valid_o = ((opcode_i & `INST_JALR_MASK) == `INST_JALR)     ||
                     ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) ||
                     ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M) ||
                     ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M) ||
-                    ((opcode_i & `INST_CSRRCI_MASK) == `INST_CSRRCI);
+                    ((opcode_i & `INST_CSRRCI_MASK) == `INST_CSRRCI) ||
+                    ((opcode_i & `INST_VSETVLI_MASK)  == `INST_VSETVLI)  ||
+                    ((opcode_i & `INST_VSETIVLI_MASK) == `INST_VSETIVLI);
 
 assign exec_o =     ((opcode_i & `INST_ANDI_MASK) == `INST_ANDI)  ||
                     ((opcode_i & `INST_ADDI_MASK) == `INST_ADDI)  ||

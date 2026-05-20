@@ -171,6 +171,11 @@ module riscv_issue
     ,output          exec_hold_o
     ,output          mul_hold_o
     ,output          interrupt_inhibit_o
+    ,output          v_csr_opcode_valid_o
+    ,output [31:0]   v_csr_opcode_i_o          // full instruction for vtypei + flags
+    ,output [ 4:0]   v_csr_rd_idx_o
+    ,output [ 4:0]   v_csr_rs1_idx_o
+    ,output [31:0]   v_csr_rs1_value_o
 );
 
 
@@ -326,7 +331,7 @@ wire [4:0] v_regfile_ra_idx_w = (issue_v_lsu_w && is_v_store_w) ? issue_rd_idx_w
 
 wire v_fwd_store_w = v_writeback_valid_i && issue_v_lsu_w && is_v_store_w && (v_writeback_vd_idx_i == issue_rd_idx_w);
 
-assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w;
+assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w & ~issue_vsetvli_w;
 assign v_lsu_is_store_o     = is_v_store_w;
 assign v_lsu_base_addr_o    = opcode_ra_operand_o;   // rs1 from scalar regfile
 assign v_lsu_store_data_o   = v_fwd_store_w ? v_writeback_value_i : v_ra0_value_w;         // vs3 read via vector regfile
@@ -340,7 +345,11 @@ assign v_lsu_stride_o       = opcode_rb_operand_o;
 // Vector CSR
 //------------------------------------------------------------- 
 wire issue_vsetvli_w = fetch_instr_vsetvli_i;
-
+assign v_csr_opcode_valid_o = opcode_issue_r & issue_vsetvli_w;
+assign v_csr_opcode_i_o     = opcode_opcode_o;
+assign v_csr_rd_idx_o       = issue_rd_idx_w;
+assign v_csr_rs1_idx_o      = issue_ra_idx_w;      // rs1 is ra in issue stage
+assign v_csr_rs1_value_o    = opcode_ra_operand_o; // value of rs1
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 
@@ -553,11 +562,11 @@ begin
     end 
 end
 
-assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i;
-assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w;
-assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w;
-assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
-assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
+assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i & ~issue_vsetvli_w;
+assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w & ~issue_vsetvli_w;
+assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w & ~issue_vsetvli_w;
+assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r & ~issue_vsetvli_w;
+assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r & ~issue_vsetvli_w;
 assign interrupt_inhibit_o  = csr_pending_q || issue_csr_w;
 
 assign fetch_accept_o       = opcode_valid_w ? (opcode_accept_r & ~take_interrupt_i) : 1'b1;

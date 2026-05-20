@@ -268,5 +268,32 @@ tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.take_interrupt_o
 tb.DUT.Vriscv_tcm_top.v.u_core.u_csr.ifence_o
 @1000200
 -CSR
+@800200
+-V_CSR_EXEC
+@28
+u_core.u_v_csr.opcode_valid_i
+u_core.u_v_csr.opcode_opcode_i[31:0]
+u_core.u_v_csr.opcode_rd_idx_i[4:0]
+u_core.u_v_csr.opcode_rs1_idx_i[4:0]
+u_core.u_v_csr.opcode_rs1_value_i[31:0]
+@22
+u_core.u_v_csr.avl[31:0]
+u_core.u_v_csr.vtypei[10:0]
+u_core.u_v_csr.req_vsew[2:0]
+u_core.u_v_csr.req_vlmul[2:0]
+u_core.u_v_csr.vtype_valid
+u_core.u_v_csr.vlmax[31:0]
+u_core.u_v_csr.new_vl[31:0]
+u_core.u_v_csr.new_vtype[31:0]
+@28
+u_core.u_v_csr.wb_valid_q
+u_core.u_v_csr.wb_vl_q[31:0]
+u_core.u_v_csr.wb_rd_q[4:0]
+u_core.v_csr_vl_we_w
+u_core.v_csr_vl_wdata_w[31:0]
+u_core.u_csr.u_csr_regfile.csr_vl_q[31:0]
+u_core.u_csr.u_csr_regfile.csr_vtype_q[31:0]
+@1000200
+-V_CSR_EXEC
 [pattern_trace] 1
 [pattern_trace] 0

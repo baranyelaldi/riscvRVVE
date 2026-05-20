@@ -75,6 +75,12 @@ module riscv_csr
     ,input  [ 31:0]  reset_vector_i
     ,input           interrupt_inhibit_i
 
+    ,input           v_csr_vl_we_i
+    ,input [31:0]    v_csr_vl_wdata_i
+    ,input           v_csr_vtype_we_i
+    ,input [31:0]    v_csr_vtype_wdata_i
+    ,output [31:0]   csr_vl_current_o
+
     // Outputs
     ,output [ 31:0]  csr_result_e1_value_o
     ,output          csr_result_e1_write_o
@@ -189,6 +195,12 @@ u_csrfile
     ,.exception_i(csr_writeback_exception_i)
     ,.exception_pc_i(csr_writeback_exception_pc_i)
     ,.exception_addr_i(csr_writeback_exception_addr_i)
+
+    ,.v_csr_vl_we_i(v_csr_vl_we_i)
+    ,.v_csr_vl_wdata_i(v_csr_vl_wdata_i)
+    ,.v_csr_vtype_we_i(v_csr_vtype_we_i)
+    ,.v_csr_vtype_wdata_i(v_csr_vtype_wdata_i)
+    ,.csr_vl_current_o(csr_vl_current_o)
 
     // CSR register writes (WB)
     ,.csr_waddr_i(csr_writeback_write_i ? csr_writeback_waddr_i : 12'b0)

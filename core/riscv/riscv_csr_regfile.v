@@ -64,6 +64,12 @@ module riscv_csr_regfile
     ,input [31:0]    exception_pc_i
     ,input [31:0]    exception_addr_i
 
+    ,input           v_csr_vl_we_i
+    ,input [31:0]    v_csr_vl_wdata_i
+    ,input           v_csr_vtype_we_i
+    ,input [31:0]    v_csr_vtype_wdata_i
+    ,output [31:0]   csr_vl_current_o
+
     // CSR read port
     ,input           csr_ren_i
     ,input  [11:0]   csr_raddr_i
@@ -565,6 +571,9 @@ begin
     if (csr_mcycle_q == 32'hFFFFFFFF)
         csr_mcycle_h_q <= csr_mcycle_h_q + 32'd1;
 
+    if (v_csr_vl_we_i) csr_vl_q <= v_csr_vl_wdata_i;
+    if (v_csr_vtype_we_i) csr_vtype_q <= v_csr_vtype_wdata_i;
+
 `ifdef HAS_SIM_CTRL
     // CSR SIM_CTRL (or DSCRATCH)
     if ((csr_waddr_i == `CSR_DSCRATCH || csr_waddr_i == `CSR_SIM_CTRL) && ~(|exception_i))
@@ -640,6 +649,7 @@ end
 
 assign csr_branch_o = branch_r;
 assign csr_target_o = branch_target_r;
+assign csr_vl_current_o = csr_vl_q;
 
 `ifdef verilator
 function [31:0] get_mcycle; /*verilator public*/
