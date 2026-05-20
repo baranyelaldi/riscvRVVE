@@ -82,6 +82,7 @@ module riscv_decode
     ,output          fetch_out_instr_invalid_o
     ,output [ 2:0]   sew_o
     ,output          fetch_out_instr_is_strided_o
+    ,output          fetch_out_instr_vsetvli_o
 );
 
 
@@ -132,6 +133,7 @@ begin
         ,.rd_valid_o(fetch_out_instr_rd_valid_o)
         ,.sew_o(sew_o)
         ,.is_strided_o(fetch_out_instr_is_strided_o)
+        ,.vsetvli_o(fetch_out_instr_vsetvli_o)
     );
 
     assign fetch_in_accept_o        = fetch_out_accept_i;
@@ -164,6 +166,7 @@ begin
         ,.rd_valid_o(fetch_out_instr_rd_valid_o)
         ,.sew_o(sew_o)
         ,.is_strided_o(fetch_out_instr_is_strided_o)
+        ,.vsetvli_o(fetch_out_instr_vsetvli_o)
     );
 
     // Outputs

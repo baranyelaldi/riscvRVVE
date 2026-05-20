@@ -67,6 +67,7 @@ tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_branch_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_csr_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_v_alu_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_v_lsu_w
+tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_vsetvli_w
 tb.DUT.Vriscv_tcm_top.v.u_core.fetch_instr_invalid_w
 @1000200
 -DECODE

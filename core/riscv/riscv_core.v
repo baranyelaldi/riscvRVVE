@@ -206,6 +206,7 @@ wire           fetch_instr_v_lsu_w;
 wire           v_to_scalar_w;
 wire           fetch_instr_is_strided_w;
 wire           v_lsu_is_strided_w;
+wire           fetch_instr_vsetvli_w;
 wire           lsu_opcode_valid_w;
 wire  [ 31:0]  fetch_dec_instr_w;
 wire           csr_result_e1_write_w;
@@ -373,6 +374,7 @@ u_decode
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
     ,.sew_o(sew_w)
     ,.fetch_out_instr_is_strided_o(fetch_instr_is_strided_w)
+    ,.fetch_out_instr_vsetvli_o(fetch_instr_vsetvli_w)
 );
 
 
@@ -676,6 +678,7 @@ u_issue
     ,.fetch_instr_v_alu_i(fetch_instr_v_alu_w)
     ,.fetch_instr_v_lsu_i(fetch_instr_v_lsu_w)
     ,.fetch_instr_is_strided_i(fetch_instr_is_strided_w)
+    ,.fetch_instr_vsetvli_i(fetch_instr_vsetvli_w)
     ,.v_lsu_busy_i(v_lsu_busy_w)
     ,.fetch_instr_rd_valid_i(fetch_instr_rd_valid_w)
     ,.fetch_instr_invalid_i(fetch_instr_invalid_w)

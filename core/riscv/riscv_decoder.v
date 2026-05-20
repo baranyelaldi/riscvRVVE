@@ -60,6 +60,7 @@ module riscv_decoder
     ,output                       rd_valid_o
     ,output [ 2:0]                sew_o
     ,output                       is_strided_o
+    ,output                       vsetvli_o
 );
 
 // Vector ALU instruction match (used by both invalid_w and v_alu_o)
@@ -138,6 +139,9 @@ wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VSE64_V_MASK) == `INST_VSE64_V)        ||
                     ((opcode_i & `INST_VSSE32_V_MASK) == `INST_VSSE32_V);
 
+wire vsetvli_w =    ((opcode_i & `INST_VSETVLI_MASK) == `INST_VSETVLI)        ||
+                    ((opcode_i & `INST_VSETIVLI_MASK) == `INST_VSETIVLI);
+
 // Invalid instruction
 wire invalid_w =    valid_i &&
                    ~(((opcode_i & `INST_ANDI_MASK) == `INST_ANDI)             ||
@@ -200,7 +204,8 @@ wire invalid_w =    valid_i &&
                     (enable_muldiv_i && (opcode_i & `INST_REM_MASK) == `INST_REM)       ||
                     (enable_muldiv_i && (opcode_i & `INST_REMU_MASK) == `INST_REMU) ||
                     v_alu_w ||
-                    v_lsu_w);
+                    v_lsu_w ||
+                    vsetvli_w);
 
 assign invalid_o = invalid_w;
 
@@ -335,5 +340,7 @@ assign sew_o = ((opcode_i & `INST_VLE8_V_MASK)  == `INST_VLE8_V)  ? 3'b000 :
 
 assign is_strided_o = ((opcode_i & `INST_VLSE32_V_MASK) == `INST_VLSE32_V) ||
                       ((opcode_i & `INST_VSSE32_V_MASK) == `INST_VSSE32_V);
+
+assign vsetvli_o = vsetvli_w;
 
 endmodule

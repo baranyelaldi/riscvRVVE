@@ -73,6 +73,7 @@ module riscv_issue
     ,input           fetch_instr_v_alu_i
     ,input           fetch_instr_v_lsu_i
     ,input           fetch_instr_is_strided_i
+    ,input           fetch_instr_vsetvli_i
     ,input           v_lsu_busy_i
     ,input           fetch_instr_rd_valid_i
     ,input           fetch_instr_invalid_i
@@ -317,6 +318,7 @@ wire [VLEN-1:0] v_operand_vs2_pre_fwd_w = v_rb0_value_w;
 assign v_operand_vs1_o = v_fwd_vs1_w ? v_writeback_value_i : v_operand_vs1_pre_fwd_w;
 assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_fwd_w;
 assign v_operand_vd_o  = v_ra1_value_w;
+
 //-------------------------------------------------------------
 // V-LSU Operand Selection
 //------------------------------------------------------------- 
@@ -333,6 +335,12 @@ assign v_lsu_vd_idx_o       = issue_rd_idx_w;        // vd for loads / vs3 idx f
 wire issue_is_strided_w     = fetch_instr_is_strided_i;
 assign v_lsu_is_strided_o   = issue_is_strided_w;
 assign v_lsu_stride_o       = opcode_rb_operand_o; 
+
+//-------------------------------------------------------------
+// Vector CSR
+//------------------------------------------------------------- 
+wire issue_vsetvli_w = fetch_instr_vsetvli_i;
+
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 

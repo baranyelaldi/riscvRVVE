@@ -413,6 +413,14 @@
 `define INST_VSSE32_V       32'h08006027
 `define INST_VSSE32_V_MASK  32'hfc00707f
 
+// vsetvli - vector configuration setting
+`define INST_VSETVLI        32'h00007057
+`define INST_VSETVLI_MASK   32'h8000707F
+
+// vsetivli
+`define INST_VSETIVLI       32'hC0007057
+`define INST_VSETIVLI_MASK  32'hC000707F
+
 // andi
 `define INST_ANDI 32'h7013
 `define INST_ANDI_MASK 32'h707f
