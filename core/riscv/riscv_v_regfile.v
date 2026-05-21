@@ -73,7 +73,8 @@ generate
 if (SUPPORT_REGFILE_XILINX)
 begin: REGFILE_XILINX_SINGLE
 
-    riscv_xilinx_2r1w
+    riscv_v_xilinx_2r1w
+    #(.VLEN(VLEN))
     u_reg
     (
         // Inputs
@@ -81,6 +82,7 @@ begin: REGFILE_XILINX_SINGLE
         ,.rst_i(rst_i)
         ,.rd0_i(rd0_i)
         ,.rd0_value_i(rd0_value_i)
+        ,.rd0_we_i(rd0_we_i)
         ,.ra_i(ra0_i)
         ,.rb_i(rb0_i)
 
