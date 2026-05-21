@@ -60,17 +60,65 @@
 // issue stage's job, the V-ALU just sees two pre-prepared vector inputs.
 // Lives on its own `alu_v_func_*` wire, separate from scalar `alu_func_*`.
 //--------------------------------------------------------------------
-`define ALU_V_NONE                              4'b0000
-`define ALU_V_ADD                               4'b0001  // vadd.{vv,vx,vi}
-`define ALU_V_SUB                               4'b0010  // vsub.{vv,vx}
-`define ALU_V_RSUB                              4'b0011  // vrsub.{vx,vi}
-`define ALU_V_MINU                              4'b0100  // vminu.{vv,vx}
-`define ALU_V_MAXU                              4'b0101  // vmaxu.{vv,vx}
-`define ALU_V_MUL                               4'b0110  // vmul.vv
-`define ALU_V_MV_X                              4'b0111  // vmv.v.x  (broadcast scalar)
-`define ALU_V_REDSUM                            4'b1000  // vredsum.vs (reduction to vd[0])
-`define ALU_V_MV_X_S                            4'b1001  // vmv.x.s
+`define ALU_V_NONE                              6'b000000
+`define ALU_V_ADD                               6'b000001  // vadd.{vv,vx,vi}
+`define ALU_V_SUB                               6'b000010  // vsub.{vv,vx}
+`define ALU_V_RSUB                              6'b000011  // vrsub.{vx,vi}
+`define ALU_V_MINU                              6'b000100  // vminu.{vv,vx}
+`define ALU_V_MAXU                              6'b000101  // vmaxu.{vv,vx}
+`define ALU_V_MUL                               6'b000110  // vmul.vv
+`define ALU_V_MV_X                              6'b000111  // vmv.v.x  (broadcast scalar)
+`define ALU_V_REDSUM                            6'b001000  // vredsum.vs (reduction to vd[0])
+`define ALU_V_MV_X_S                            6'b001001  // vmv.x.s
+`define ALU_V_MACC                              6'b001010  // vmacc.{vv,vx}
+`define ALU_V_SLL                               6'b001011  // vsll.{vv,vx,vi}
+`define ALU_V_SRL                               6'b001100  // vsrl.{vv,vx,vi}
+`define ALU_V_SRA                               6'b001101  // vsra.{vv,vx,vi}
+`define ALU_V_AND                               6'b001110  // vand.{vv,vx,vi}
+`define ALU_V_OR                                6'b001111  // vor.{vv,vx,vi}
+`define ALU_V_XOR                               6'b010000  // vxor.{vv,vx,vi}
+`define ALU_V_MSEQ                              6'b010001  // vmseq.{vv,vx,vi}
+`define ALU_V_MSNE                              6'b010010  // vmsne.{vv,vx,vi}
+`define ALU_V_MSLTU                             6'b010011  // vmsltu.{vv,vx}
+`define ALU_V_MSLT                              6'b010100  // vmslt.{vv,vx}
+`define ALU_V_MSLEU                             6'b010101  // vmsleu.{vv,vx,vi}
+`define ALU_V_MSLE                              6'b010110  // vmsle.{vv,vx,vi}
+`define ALU_V_MSGTU                             6'b010111  // vmsgtu.{vx,vi}
+`define ALU_V_MSGT                              6'b011000  // vmsgt.{vx,vi}
+`define ALU_V_MAND                              6'b011001  // vmand.mm
+`define ALU_V_MOR                               6'b011010  // vmor.mm
+`define ALU_V_MXOR                              6'b011011  // vmxor.mm
+`define ALU_V_MNAND                             6'b011100  // vmand.mm
+`define ALU_V_CPOP                              6'b011101  // vcpop.m
+`define ALU_V_FIRST                             6'b011110  // vfirst.m
+`define ALU_V_MV_S_X                            6'b011111  // vmv.s.x
+`define ALU_V_VID                               6'b100000  // vid.v
 
+//--------------------------------------------------------------------
+// Vector CSRs for RVV 1.0
+//--------------------------------------------------------------------
+`define CSR_VSTART       12'h008      // not implemented; reads return 0
+`define CSR_VXSAT        12'h009      // not implemented
+`define CSR_VXRM         12'h00a      // not implemented
+`define CSR_VCSR         12'h00f      // not implemented
+`define CSR_VL           12'hc20      // read-only via csrr; written by vsetvli
+`define CSR_VTYPE        12'hc21      // read-only via csrr; written by vsetvli
+`define CSR_VLENB        12'hc22      // constant = VLEN/8
+
+//--------------------------------------------------------------------
+// Vector CSRs Field Layout
+//--------------------------------------------------------------------
+`define VTYPE_VILL_BIT   31
+`define VTYPE_VMA_BIT    7
+`define VTYPE_VTA_BIT    6
+`define VTYPE_VSEW_HIGH  5
+`define VTYPE_VSEW_LOW   3
+`define VTYPE_VLMUL_HIGH 2
+`define VTYPE_VLMUL_LOW  0
+`define VTYPE_RESET      32'h000000d0  // vill=0, vma=1, vta=1, vsew=010 (e32), vlmul=000 (m1)
+`define SEW_E8   3'b000
+`define SEW_E16  3'b001
+`define SEW_E32  3'b010
 //--------------------------------------------------------------------
 // Instructions Masks
 //--------------------------------------------------------------------
@@ -131,9 +179,201 @@
 `define INST_VMV_V_X 32'h5c004057
 `define INST_VMV_V_X_MASK 32'hfc00707f
 
-// vmv.x.s rd, vs2
+// vmv.x.s
 `define INST_VMV_X_S       32'h42002057
 `define INST_VMV_X_S_MASK  32'hfe0ff07f
+
+// vmacc.vv
+`define INST_VMACC_VV       32'hb6002057
+`define INST_VMACC_VV_MASK  32'hfe00707f
+
+// vmacc.vx — multiply-accumulate
+`define INST_VMACC_VX       32'hb6006057
+`define INST_VMACC_VX_MASK  32'hfe00707f
+
+// vxll.vv - vector shift left logical
+`define INST_VSLL_VV       32'h96000057
+`define INST_VSLL_VV_MASK  32'hfe00707f
+
+// vsll.vx
+`define INST_VSLL_VX       32'h96004057
+`define INST_VSLL_VX_MASK  32'hfe00707f
+
+// vsll.vi
+`define INST_VSLL_VI       32'h96003057
+`define INST_VSLL_VI_MASK  32'hfe00707f
+
+// vsrl.vv - vector shift right logical
+`define INST_VSRL_VV       32'ha2000057
+`define INST_VSRL_VV_MASK  32'hfe00707f
+
+// vsrl.vx
+`define INST_VSRL_VX       32'ha2004057
+`define INST_VSRL_VX_MASK  32'hfe00707f
+
+// vsrl.vi
+`define INST_VSRL_VI       32'ha2003057
+`define INST_VSRL_VI_MASK  32'hfe00707f
+
+// vsra.vv - vector shift right arithmetic
+`define INST_VSRA_VV       32'ha6000057
+`define INST_VSRA_VV_MASK  32'hfe00707f
+
+// vsra.vx
+`define INST_VSRA_VX       32'ha6004057
+`define INST_VSRA_VX_MASK  32'hfe00707f
+
+// vsra.vi
+`define INST_VSRA_VI       32'ha6003057
+`define INST_VSRA_VI_MASK  32'hfe00707f
+
+// vand.vv - vector bitwise AND
+`define INST_VAND_VV       32'h26000057
+`define INST_VAND_VV_MASK  32'hfe00707f
+
+// vand.vx
+`define INST_VAND_VX       32'h26004057
+`define INST_VAND_VX_MASK  32'hfe00707f
+
+// vand.vi
+`define INST_VAND_VI       32'h26003057
+`define INST_VAND_VI_MASK  32'hfe00707f
+
+// vor.vv - vector bitwise OR
+`define INST_VOR_VV        32'h2a000057
+`define INST_VOR_VV_MASK   32'hfe00707f
+
+// vor.vx
+`define INST_VOR_VX        32'h2a004057
+`define INST_VOR_VX_MASK   32'hfe00707f
+
+// vor.vi
+`define INST_VOR_VI        32'h2a003057
+`define INST_VOR_VI_MASK   32'hfe00707f
+
+// vxor.vv - vector bitwise XOR
+`define INST_VXOR_VV       32'h2e000057
+`define INST_VXOR_VV_MASK  32'hfe00707f
+
+// vxor.vx
+`define INST_VXOR_VX       32'h2e004057
+`define INST_VXOR_VX_MASK  32'hfe00707f
+
+// vxor.vi
+`define INST_VXOR_VI       32'h2e003057
+`define INST_VXOR_VI_MASK  32'hfe00707f
+
+// vmseq.vv — set if equal
+`define INST_VMSEQ_VV       32'h62000057
+`define INST_VMSEQ_VV_MASK  32'hfe00707f
+
+// vmseq.vx
+`define INST_VMSEQ_VX       32'h62004057
+`define INST_VMSEQ_VX_MASK  32'hfe00707f
+
+// vmseq.vi
+`define INST_VMSEQ_VI       32'h62003057
+`define INST_VMSEQ_VI_MASK  32'hfe00707f
+
+// vmsne — set if not equal
+`define INST_VMSNE_VV       32'h66000057
+`define INST_VMSNE_VV_MASK  32'hfe00707f
+
+// vmsne.vx
+`define INST_VMSNE_VX       32'h66004057
+`define INST_VMSNE_VX_MASK  32'hfe00707f
+
+// vmsne.vi
+`define INST_VMSNE_VI       32'h66003057
+`define INST_VMSNE_VI_MASK  32'hfe00707f
+
+// vmsltu.vv — set if less than (unsigned)
+`define INST_VMSLTU_VV      32'h6a000057
+`define INST_VMSLTU_VV_MASK  32'hfe00707f
+
+// vmsltu.vx
+`define INST_VMSLTU_VX      32'h6a004057
+`define INST_VMSLTU_VX_MASK  32'hfe00707f
+
+// vmslt.vv — set if less than (signed)
+`define INST_VMSLT_VV       32'h6e000057
+`define INST_VMSLT_VV_MASK  32'hfe00707f
+
+// vmslt.vx
+`define INST_VMSLT_VX       32'h6e004057
+`define INST_VMSLT_VX_MASK  32'hfe00707f
+
+// vmsleu.vv — set if less-or-equal (unsigned)
+`define INST_VMSLEU_VV      32'h72000057
+`define INST_VMSLEU_VV_MASK  32'hfe00707f
+
+// vmsleu.vx
+`define INST_VMSLEU_VX      32'h72004057
+`define INST_VMSLEU_VX_MASK  32'hfe00707f
+
+// vmsleu.vi
+`define INST_VMSLEU_VI      32'h72003057
+`define INST_VMSLEU_VI_MASK  32'hfe00707f
+
+// vmsle.vv — set if less-or-equal (signed)
+`define INST_VMSLE_VV       32'h76000057
+`define INST_VMSLE_VV_MASK  32'hfe00707f
+
+// vmsle.vx
+`define INST_VMSLE_VX       32'h76004057
+`define INST_VMSLE_VX_MASK  32'hfe00707f
+
+// vmsle.vi
+`define INST_VMSLE_VI       32'h76003057
+`define INST_VMSLE_VI_MASK  32'hfe00707f
+
+// vmsgtu.vx — set if greater than (unsigned)
+`define INST_VMSGTU_VX      32'h7a004057
+`define INST_VMSGTU_VX_MASK  32'hfe00707f
+
+// vmsgtu.vi
+`define INST_VMSGTU_VI      32'h7a003057
+`define INST_VMSGTU_VI_MASK  32'hfe00707f
+
+// vmsgt.vx — set if greater than (signed)
+`define INST_VMSGT_VX       32'h7e004057
+`define INST_VMSGT_VX_MASK  32'hfe00707f
+
+// vmsgt.vi
+`define INST_VMSGT_VI       32'h7e003057
+`define INST_VMSGT_VI_MASK  32'hfe00707f
+
+// vmand.mm - vector mask logicals
+`define INST_VMAND_MM       32'h66002057
+`define INST_VMAND_MM_MASK  32'hfe00707f
+
+// vmor.mm
+`define INST_VMOR_MM        32'h6a002057
+`define INST_VMOR_MM_MASK   32'hfe00707f
+
+// vmxor.mm
+`define INST_VMXOR_MM       32'h6e002057
+`define INST_VMXOR_MM_MASK  32'hfe00707f
+
+// vmnand.mm
+`define INST_VMNAND_MM      32'h76002057
+`define INST_VMNAND_MM_MASK 32'hfe00707f
+
+// vcpop.m
+`define INST_VCPOP_M        32'h42082057
+`define INST_VCPOP_M_MASK   32'hfe0ff07f
+
+// vfirst.m
+`define INST_VFIRST_M       32'h4208a057
+`define INST_VFIRST_M_MASK  32'hfe0ff07f
+
+// vmv.s.x - scalar to lane-0 move
+`define INST_VMV_S_X        32'h42006057
+`define INST_VMV_S_X_MASK   32'hfff0707f
+
+// vid.v - lane to index generator
+`define INST_VID_V          32'h5208a057
+`define INST_VID_V_MASK     32'hfffff07f
 
 // vle8.v
 `define INST_VLE8_V       32'h00000007
@@ -151,6 +391,10 @@
 `define INST_VLE64_V      32'h00007007
 `define INST_VLE64_V_MASK 32'hfdf0707f
 
+// vlse32.v - strided load
+`define INST_VLSE32_V       32'h08006007
+`define INST_VLSE32_V_MASK  32'hfc00707f
+
 // vse8.v
 `define INST_VSE8_V       32'h00000027
 `define INST_VSE8_V_MASK  32'hfdf0707f
@@ -166,6 +410,18 @@
 // vse64.v
 `define INST_VSE64_V      32'h00007027
 `define INST_VSE64_V_MASK 32'hfdf0707f
+
+// vsse32.v - strided store
+`define INST_VSSE32_V       32'h08006027
+`define INST_VSSE32_V_MASK  32'hfc00707f
+
+// vsetvli - vector configuration setting
+`define INST_VSETVLI        32'h00007057
+`define INST_VSETVLI_MASK   32'h8000707F
+
+// vsetivli
+`define INST_VSETIVLI       32'hC0007057
+`define INST_VSETIVLI_MASK  32'hC000707F
 
 // andi
 `define INST_ANDI 32'h7013

@@ -134,6 +134,7 @@ wire           fetch_dec_fault_page_w;
 wire  [ 31:0]  mul_opcode_opcode_w;
 wire           exec_hold_w;
 wire           fetch_instr_invalid_w;
+wire  [  2:0]  sew_w;
 wire  [ 31:0]  branch_pc_w;
 wire  [  4:0]  mul_opcode_ra_idx_w;
 wire  [  4:0]  csr_opcode_rb_idx_w;
@@ -203,6 +204,9 @@ wire           fetch_instr_csr_w;
 wire           fetch_instr_v_alu_w;
 wire           fetch_instr_v_lsu_w;
 wire           v_to_scalar_w;
+wire           fetch_instr_is_strided_w;
+wire           v_lsu_is_strided_w;
+wire           fetch_instr_vsetvli_w;
 wire           lsu_opcode_valid_w;
 wire  [ 31:0]  fetch_dec_instr_w;
 wire           csr_result_e1_write_w;
@@ -225,9 +229,10 @@ wire  [  4:0]  lsu_opcode_ra_idx_w;
 wire  [ 31:0]  csr_writeback_exception_pc_w;
 wire           mmu_store_fault_w;
 wire           branch_exec_is_call_w;
-wire  [  3:0]   alu_v_func_w;
+wire  [  5:0]   alu_v_func_w;
 wire [VLEN-1:0] v_operand_vs1_w;
 wire [VLEN-1:0] v_operand_vs2_w;
+wire [VLEN-1:0] v_operand_vd_w;
 wire            v_writeback_valid_w;
 wire  [  4:0]   v_writeback_vd_idx_w;
 wire [VLEN-1:0] v_writeback_value_w;
@@ -236,6 +241,7 @@ wire             v_lsu_is_store_w;
 wire [   31:0]   v_lsu_base_addr_w;
 wire [VLEN-1:0]  v_lsu_store_data_w;
 wire [    4:0]   v_lsu_vd_idx_w;
+wire [   31:0]   v_lsu_stride_w;
 wire             v_lsu_busy_w;
 wire [   31:0]   v_lsu_mem_addr_w;
 wire [   31:0]   v_lsu_mem_data_wr_w;
@@ -318,8 +324,11 @@ u_v_exec
     ,.opcode_vd_idx_i(opcode_rd_idx_w)
     ,.v_operand_vs1_i(v_operand_vs1_w)
     ,.v_operand_vs2_i(v_operand_vs2_w)
+    ,.v_operand_vd_i(v_operand_vd_w)
     ,.alu_v_func_i(alu_v_func_w)
     ,.v_to_scalar_i(v_to_scalar_w)
+    ,.vl_i(csr_vl_current_w)
+    ,.sew_i(csr_sew_w)
 
     ,.writeback_valid_o(v_writeback_valid_w)
     ,.writeback_vd_idx_o(v_writeback_vd_idx_w)
@@ -365,6 +374,9 @@ u_decode
     ,.v_to_scalar_o(v_to_scalar_w)
     ,.fetch_out_instr_rd_valid_o(fetch_instr_rd_valid_w)
     ,.fetch_out_instr_invalid_o(fetch_instr_invalid_w)
+    ,.sew_o(sew_w)
+    ,.fetch_out_instr_is_strided_o(fetch_instr_is_strided_w)
+    ,.fetch_out_instr_vsetvli_o(fetch_instr_vsetvli_w)
 );
 
 
@@ -495,6 +507,11 @@ u_v_lsu
     ,.is_store_i         (v_lsu_is_store_w)
     ,.base_addr_i        (v_lsu_base_addr_w)
     ,.store_data_i       (v_lsu_store_data_w)
+    ,.is_strided_i       (v_lsu_is_strided_w)
+    ,.stride_i           (v_lsu_stride_w)
+    ,.vl_i               (csr_vl_current_w)
+    ,.sew_i              (csr_sew_w)
+
 
     // Memory interface (private wires; muxed below)
     ,.mem_data_rd_i      (mmu_lsu_data_rd_w)   // shared with scalar — see 6c
@@ -538,16 +555,35 @@ assign scalar_lsu_ack_w     = ~v_lsu_busy_w & mmu_lsu_ack_w;
 assign scalar_lsu_error_w   = ~v_lsu_busy_w & mmu_lsu_error_w;
 
 // Scalar writeback mux: V-ALU vmv.x.s steals the scalar ALU writeback path
-wire [31:0] writeback_exec_value_muxed_w = v_exec_scalar_we_w
+wire [31:0] writeback_exec_value_muxed_w = v_csr_scalar_we_w ? v_csr_scalar_value_w
+                                         : v_exec_scalar_we_w
                                          ? v_exec_scalar_value_w
                                          : writeback_exec_value_w;
 
+wire        v_csr_vl_we_w;
+wire [31:0] v_csr_vl_wdata_w;
+wire        v_csr_vtype_we_w;
+wire [31:0] v_csr_vtype_wdata_w;
+wire [31:0] v_csr_scalar_value_w;
+wire        v_csr_scalar_we_w;
+wire [ 4:0] v_csr_scalar_rd_w;
+wire [2:0]  csr_sew_w;
 
+// New wires from issue
+wire        v_csr_opcode_valid_w;
+wire [31:0] v_csr_opcode_w;
+wire [ 4:0] v_csr_rd_idx_w;
+wire [ 4:0] v_csr_rs1_idx_w;
+wire [31:0] v_csr_rs1_value_w;
+
+// Current vl from CSR (for "keep" case) — need a new readback path or expose csr_vl_q
+wire [31:0] csr_vl_current_w;
 
 riscv_csr
 #(
      .SUPPORT_SUPER(SUPPORT_SUPER)
     ,.SUPPORT_MULDIV(SUPPORT_MULDIV)
+    ,.VLEN(VLEN)
 )
 u_csr
 (
@@ -574,6 +610,13 @@ u_csr
     ,.reset_vector_i(reset_vector_i)
     ,.interrupt_inhibit_i(interrupt_inhibit_w)
 
+    ,.v_csr_vl_we_i(v_csr_vl_we_w)
+    ,.v_csr_vl_wdata_i(v_csr_vl_wdata_w)
+    ,.v_csr_vtype_we_i(v_csr_vtype_we_w)
+    ,.v_csr_vtype_wdata_i(v_csr_vtype_wdata_w)
+    ,.csr_vl_current_o(csr_vl_current_w)
+    ,.csr_sew_o(csr_sew_w)
+
     // Outputs
     ,.csr_result_e1_value_o(csr_result_e1_value_w)
     ,.csr_result_e1_write_o(csr_result_e1_write_w)
@@ -589,6 +632,29 @@ u_csr
     ,.mmu_mxr_o(mmu_mxr_w)
     ,.mmu_flush_o(mmu_flush_w)
     ,.mmu_satp_o(mmu_satp_w)
+);
+
+riscv_v_csr
+#(
+    .VLEN(VLEN)
+) 
+u_v_csr 
+(
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .opcode_valid_i  (v_csr_opcode_valid_w),
+    .opcode_opcode_i (v_csr_opcode_w),
+    .opcode_rd_idx_i (v_csr_rd_idx_w),
+    .opcode_rs1_idx_i(v_csr_rs1_idx_w),
+    .opcode_rs1_value_i(v_csr_rs1_value_w),
+    .csr_vl_current_i(csr_vl_current_w),
+    .csr_vl_we_o     (v_csr_vl_we_w),
+    .csr_vl_wdata_o  (v_csr_vl_wdata_w),
+    .csr_vtype_we_o  (v_csr_vtype_we_w),
+    .csr_vtype_wdata_o(v_csr_vtype_wdata_w),
+    .writeback_scalar_value_o(v_csr_scalar_value_w),
+    .writeback_scalar_we_o   (v_csr_scalar_we_w),
+    .writeback_scalar_rd_o   (v_csr_scalar_rd_w)
 );
 
 
@@ -664,6 +730,8 @@ u_issue
     ,.fetch_instr_csr_i(fetch_instr_csr_w)
     ,.fetch_instr_v_alu_i(fetch_instr_v_alu_w)
     ,.fetch_instr_v_lsu_i(fetch_instr_v_lsu_w)
+    ,.fetch_instr_is_strided_i(fetch_instr_is_strided_w)
+    ,.fetch_instr_vsetvli_i(fetch_instr_vsetvli_w)
     ,.v_lsu_busy_i(v_lsu_busy_w)
     ,.fetch_instr_rd_valid_i(fetch_instr_rd_valid_w)
     ,.fetch_instr_invalid_i(fetch_instr_invalid_w)
@@ -737,11 +805,14 @@ u_issue
     ,.mul_opcode_rb_operand_o(mul_opcode_rb_operand_w)
     ,.v_operand_vs1_o(v_operand_vs1_w)
     ,.v_operand_vs2_o(v_operand_vs2_w)
+    ,.v_operand_vd_o(v_operand_vd_w)
     ,.alu_v_func_o(alu_v_func_w)
     ,.v_lsu_is_store_o(v_lsu_is_store_w)
     ,.v_lsu_base_addr_o(v_lsu_base_addr_w)
     ,.v_lsu_store_data_o(v_lsu_store_data_w)
     ,.v_lsu_vd_idx_o(v_lsu_vd_idx_w)
+    ,.v_lsu_is_strided_o(v_lsu_is_strided_w)
+    ,.v_lsu_stride_o(v_lsu_stride_w)
     ,.csr_opcode_opcode_o(csr_opcode_opcode_w)
     ,.csr_opcode_pc_o(csr_opcode_pc_w)
     ,.csr_opcode_invalid_o(csr_opcode_invalid_w)
@@ -759,6 +830,11 @@ u_issue
     ,.exec_hold_o(exec_hold_w)
     ,.mul_hold_o(mul_hold_w)
     ,.interrupt_inhibit_o(interrupt_inhibit_w)
+    ,.v_csr_opcode_valid_o(v_csr_opcode_valid_w)
+    ,.v_csr_opcode_i_o(v_csr_opcode_w)
+    ,.v_csr_rd_idx_o(v_csr_rd_idx_w)
+    ,.v_csr_rs1_idx_o(v_csr_rs1_idx_w)
+    ,.v_csr_rs1_value_o(v_csr_rs1_value_w)
 );
 
 

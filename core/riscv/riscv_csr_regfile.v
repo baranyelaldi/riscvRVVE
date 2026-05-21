@@ -44,7 +44,8 @@ module riscv_csr_regfile
 //-----------------------------------------------------------------
 #(
      parameter SUPPORT_MTIMECMP    = 1,
-     parameter SUPPORT_SUPER       = 0
+     parameter SUPPORT_SUPER       = 0,
+     parameter VLEN                = 128
 )
 //-----------------------------------------------------------------
 // Ports
@@ -62,6 +63,13 @@ module riscv_csr_regfile
     ,input [5:0]     exception_i
     ,input [31:0]    exception_pc_i
     ,input [31:0]    exception_addr_i
+
+    ,input           v_csr_vl_we_i
+    ,input [31:0]    v_csr_vl_wdata_i
+    ,input           v_csr_vtype_we_i
+    ,input [31:0]    v_csr_vtype_wdata_i
+    ,output [31:0]   csr_vl_current_o
+    ,output [2:0]    csr_sew_o
 
     // CSR read port
     ,input           csr_ren_i
@@ -128,6 +136,9 @@ reg        m_enabled_r;
 reg [31:0] m_interrupts_r;
 reg        s_enabled_r;
 reg [31:0] s_interrupts_r;
+
+reg [31:0]  csr_vl_q;
+reg [31:0]  csr_vtype_q;
 
 always @ *
 begin
@@ -208,6 +219,9 @@ begin
     `CSR_STVAL:    rdata_r = SUPPORT_SUPER ? (csr_stval_q    & `CSR_STVAL_MASK)    : 32'b0;
     `CSR_SATP:     rdata_r = SUPPORT_SUPER ? (csr_satp_q     & `CSR_SATP_MASK)     : 32'b0;
     `CSR_SSCRATCH: rdata_r = SUPPORT_SUPER ? (csr_sscratch_q & `CSR_SSCRATCH_MASK) : 32'b0;
+    `CSR_VL: rdata_r = csr_vl_q;
+    `CSR_VTYPE: rdata_r = csr_vtype_q;
+    `CSR_VLENB: rdata_r = VLEN / 8;
     default:       rdata_r = 32'b0;
     endcase
 end
@@ -523,6 +537,8 @@ begin
     csr_sscratch_q     <= 32'b0;
 
     csr_mip_next_q     <= 32'b0;
+    csr_vl_q           <= VLEN / 32;
+    csr_vtype_q        <= `VTYPE_RESET;
 end
 else
 begin
@@ -555,6 +571,9 @@ begin
     // Increment upper cycle counter on lower 32-bit overflow
     if (csr_mcycle_q == 32'hFFFFFFFF)
         csr_mcycle_h_q <= csr_mcycle_h_q + 32'd1;
+
+    if (v_csr_vl_we_i) csr_vl_q <= v_csr_vl_wdata_i;
+    if (v_csr_vtype_we_i) csr_vtype_q <= v_csr_vtype_wdata_i;
 
 `ifdef HAS_SIM_CTRL
     // CSR SIM_CTRL (or DSCRATCH)
@@ -631,6 +650,8 @@ end
 
 assign csr_branch_o = branch_r;
 assign csr_target_o = branch_target_r;
+assign csr_vl_current_o = csr_vl_q;
+assign csr_sew_o = csr_vtype_q[5:3];
 
 `ifdef verilator
 function [31:0] get_mcycle; /*verilator public*/

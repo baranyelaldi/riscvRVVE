@@ -72,6 +72,8 @@ module riscv_issue
     ,input           fetch_instr_csr_i
     ,input           fetch_instr_v_alu_i
     ,input           fetch_instr_v_lsu_i
+    ,input           fetch_instr_is_strided_i
+    ,input           fetch_instr_vsetvli_i
     ,input           v_lsu_busy_i
     ,input           fetch_instr_rd_valid_i
     ,input           fetch_instr_invalid_i
@@ -144,11 +146,14 @@ module riscv_issue
     ,output [ 31:0]  mul_opcode_rb_operand_o
     ,output [VLEN-1:0] v_operand_vs1_o
     ,output [VLEN-1:0] v_operand_vs2_o
-    ,output [  3:0]  alu_v_func_o
+    ,output [VLEN-1:0] v_operand_vd_o
+    ,output [  5:0]  alu_v_func_o
     ,output          v_lsu_is_store_o
     ,output [ 31:0]  v_lsu_base_addr_o
     ,output [VLEN-1:0] v_lsu_store_data_o
     ,output [  4:0]  v_lsu_vd_idx_o
+    ,output          v_lsu_is_strided_o
+    ,output [ 31:0]  v_lsu_stride_o
     ,output [ 31:0]  csr_opcode_opcode_o
     ,output [ 31:0]  csr_opcode_pc_o
     ,output          csr_opcode_invalid_o
@@ -166,6 +171,11 @@ module riscv_issue
     ,output          exec_hold_o
     ,output          mul_hold_o
     ,output          interrupt_inhibit_o
+    ,output          v_csr_opcode_valid_o
+    ,output [31:0]   v_csr_opcode_i_o          // full instruction for vtypei + flags
+    ,output [ 4:0]   v_csr_rd_idx_o
+    ,output [ 4:0]   v_csr_rs1_idx_o
+    ,output [31:0]   v_csr_rs1_value_o
 );
 
 
@@ -220,7 +230,7 @@ wire       is_v_store_w = issue_v_lsu_w && (opcode_opcode_o[5] == 1'b1);
 //-------------------------------------------------------------
 // V-ALU Function Decode
 //-------------------------------------------------------------
-reg [3:0] alu_v_func_r;
+reg [5:0] alu_v_func_r;
 always @* begin
     alu_v_func_r = `ALU_V_NONE;
     if      ((opcode_opcode_o & `INST_VADD_VV_MASK) == `INST_VADD_VV) alu_v_func_r = `ALU_V_ADD;
@@ -238,6 +248,54 @@ always @* begin
     else if ((opcode_opcode_o & `INST_VMV_V_X_MASK) == `INST_VMV_V_X) alu_v_func_r = `ALU_V_MV_X;
     else if ((opcode_opcode_o & `INST_VREDSUM_VS_MASK) == `INST_VREDSUM_VS) alu_v_func_r = `ALU_V_REDSUM;
     else if ((opcode_opcode_o & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) alu_v_func_r = `ALU_V_MV_X_S;
+    else if ((opcode_opcode_o & `INST_VMACC_VV_MASK) == `INST_VMACC_VV) alu_v_func_r = `ALU_V_MACC;
+    else if ((opcode_opcode_o & `INST_VMACC_VX_MASK) == `INST_VMACC_VX) alu_v_func_r = `ALU_V_MACC;
+    else if ((opcode_opcode_o & `INST_VMACC_VX_MASK) == `INST_VMACC_VX) alu_v_func_r = `ALU_V_MACC;
+    else if ((opcode_opcode_o & `INST_VSLL_VV_MASK) == `INST_VSLL_VV) alu_v_func_r = `ALU_V_SLL;
+    else if ((opcode_opcode_o & `INST_VSLL_VX_MASK) == `INST_VSLL_VX) alu_v_func_r = `ALU_V_SLL;
+    else if ((opcode_opcode_o & `INST_VSLL_VI_MASK) == `INST_VSLL_VI) alu_v_func_r = `ALU_V_SLL;
+    else if ((opcode_opcode_o & `INST_VSRL_VV_MASK) == `INST_VSRL_VV) alu_v_func_r = `ALU_V_SRL;
+    else if ((opcode_opcode_o & `INST_VSRL_VX_MASK) == `INST_VSRL_VX) alu_v_func_r = `ALU_V_SRL;
+    else if ((opcode_opcode_o & `INST_VSRL_VI_MASK) == `INST_VSRL_VI) alu_v_func_r = `ALU_V_SRL;
+    else if ((opcode_opcode_o & `INST_VSRA_VV_MASK) == `INST_VSRA_VV) alu_v_func_r = `ALU_V_SRA;
+    else if ((opcode_opcode_o & `INST_VSRA_VX_MASK) == `INST_VSRA_VX) alu_v_func_r = `ALU_V_SRA;
+    else if ((opcode_opcode_o & `INST_VSRA_VI_MASK) == `INST_VSRA_VI) alu_v_func_r = `ALU_V_SRA;
+    else if ((opcode_opcode_o & `INST_VAND_VV_MASK) == `INST_VAND_VV) alu_v_func_r = `ALU_V_AND;
+    else if ((opcode_opcode_o & `INST_VAND_VX_MASK) == `INST_VAND_VX) alu_v_func_r = `ALU_V_AND;
+    else if ((opcode_opcode_o & `INST_VAND_VI_MASK) == `INST_VAND_VI) alu_v_func_r = `ALU_V_AND;
+    else if ((opcode_opcode_o & `INST_VOR_VV_MASK) == `INST_VOR_VV)   alu_v_func_r = `ALU_V_OR;
+    else if ((opcode_opcode_o & `INST_VOR_VX_MASK) == `INST_VOR_VX)   alu_v_func_r = `ALU_V_OR;
+    else if ((opcode_opcode_o & `INST_VOR_VI_MASK) == `INST_VOR_VI)   alu_v_func_r = `ALU_V_OR;
+    else if ((opcode_opcode_o & `INST_VXOR_VV_MASK) == `INST_VXOR_VV) alu_v_func_r = `ALU_V_XOR;
+    else if ((opcode_opcode_o & `INST_VXOR_VX_MASK) == `INST_VXOR_VX) alu_v_func_r = `ALU_V_XOR;
+    else if ((opcode_opcode_o & `INST_VXOR_VI_MASK) == `INST_VXOR_VI) alu_v_func_r = `ALU_V_XOR;
+    else if ((opcode_opcode_o & `INST_VMSEQ_VV_MASK) == `INST_VMSEQ_VV) alu_v_func_r = `ALU_V_MSEQ;
+    else if ((opcode_opcode_o & `INST_VMSEQ_VX_MASK) == `INST_VMSEQ_VX) alu_v_func_r = `ALU_V_MSEQ;
+    else if ((opcode_opcode_o & `INST_VMSEQ_VI_MASK) == `INST_VMSEQ_VI) alu_v_func_r = `ALU_V_MSEQ;
+    else if ((opcode_opcode_o & `INST_VMSNE_VV_MASK) == `INST_VMSNE_VV) alu_v_func_r = `ALU_V_MSNE;
+    else if ((opcode_opcode_o & `INST_VMSNE_VX_MASK) == `INST_VMSNE_VX) alu_v_func_r = `ALU_V_MSNE;
+    else if ((opcode_opcode_o & `INST_VMSNE_VI_MASK) == `INST_VMSNE_VI) alu_v_func_r = `ALU_V_MSNE;
+    else if ((opcode_opcode_o & `INST_VMSLTU_VV_MASK) == `INST_VMSLTU_VV) alu_v_func_r = `ALU_V_MSLTU;
+    else if ((opcode_opcode_o & `INST_VMSLTU_VX_MASK) == `INST_VMSLTU_VX) alu_v_func_r = `ALU_V_MSLTU;
+    else if ((opcode_opcode_o & `INST_VMSLT_VV_MASK) == `INST_VMSLT_VV) alu_v_func_r = `ALU_V_MSLT;
+    else if ((opcode_opcode_o & `INST_VMSLT_VX_MASK) == `INST_VMSLT_VX) alu_v_func_r = `ALU_V_MSLT;
+    else if ((opcode_opcode_o & `INST_VMSLEU_VV_MASK) == `INST_VMSLEU_VV) alu_v_func_r = `ALU_V_MSLEU;
+    else if ((opcode_opcode_o & `INST_VMSLEU_VX_MASK) == `INST_VMSLEU_VX) alu_v_func_r = `ALU_V_MSLEU;
+    else if ((opcode_opcode_o & `INST_VMSLEU_VI_MASK) == `INST_VMSLEU_VI) alu_v_func_r = `ALU_V_MSLEU;
+    else if ((opcode_opcode_o & `INST_VMSLE_VV_MASK) == `INST_VMSLE_VV) alu_v_func_r = `ALU_V_MSLE;
+    else if ((opcode_opcode_o & `INST_VMSLE_VX_MASK) == `INST_VMSLE_VX) alu_v_func_r = `ALU_V_MSLE;
+    else if ((opcode_opcode_o & `INST_VMSLE_VI_MASK) == `INST_VMSLE_VI) alu_v_func_r = `ALU_V_MSLE;
+    else if ((opcode_opcode_o & `INST_VMSGTU_VI_MASK) == `INST_VMSGTU_VI) alu_v_func_r = `ALU_V_MSGTU;
+    else if ((opcode_opcode_o & `INST_VMSGTU_VX_MASK) == `INST_VMSGTU_VX) alu_v_func_r = `ALU_V_MSGTU;
+    else if ((opcode_opcode_o & `INST_VMSGT_VI_MASK) == `INST_VMSGT_VI) alu_v_func_r = `ALU_V_MSGT;
+    else if ((opcode_opcode_o & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX) alu_v_func_r = `ALU_V_MSGT;
+    else if ((opcode_opcode_o & `INST_VMAND_MM_MASK) == `INST_VMAND_MM) alu_v_func_r = `ALU_V_MAND;
+    else if ((opcode_opcode_o & `INST_VMOR_MM_MASK) == `INST_VMOR_MM) alu_v_func_r = `ALU_V_MOR;
+    else if ((opcode_opcode_o & `INST_VMXOR_MM_MASK) == `INST_VMXOR_MM) alu_v_func_r = `ALU_V_MXOR;
+    else if ((opcode_opcode_o & `INST_VCPOP_M_MASK) == `INST_VCPOP_M) alu_v_func_r = `ALU_V_CPOP;
+    else if ((opcode_opcode_o & `INST_VFIRST_M_MASK) == `INST_VFIRST_M) alu_v_func_r = `ALU_V_FIRST;
+    else if ((opcode_opcode_o & `INST_VMV_S_X_MASK) == `INST_VMV_S_X) alu_v_func_r = `ALU_V_MV_S_X;
+    else if ((opcode_opcode_o & `INST_VID_V_MASK)   == `INST_VID_V)   alu_v_func_r = `ALU_V_VID;
 end
 
 assign alu_v_func_o = alu_v_func_r;
@@ -264,6 +322,8 @@ wire [VLEN-1:0] v_operand_vs2_pre_fwd_w = v_rb0_value_w;
 
 assign v_operand_vs1_o = v_fwd_vs1_w ? v_writeback_value_i : v_operand_vs1_pre_fwd_w;
 assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_fwd_w;
+assign v_operand_vd_o  = v_ra1_value_w;
+
 //-------------------------------------------------------------
 // V-LSU Operand Selection
 //------------------------------------------------------------- 
@@ -271,11 +331,25 @@ wire [4:0] v_regfile_ra_idx_w = (issue_v_lsu_w && is_v_store_w) ? issue_rd_idx_w
 
 wire v_fwd_store_w = v_writeback_valid_i && issue_v_lsu_w && is_v_store_w && (v_writeback_vd_idx_i == issue_rd_idx_w);
 
-assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w;
+assign v_lsu_opcode_valid_o = opcode_issue_r & issue_v_lsu_w & ~issue_vsetvli_w;
 assign v_lsu_is_store_o     = is_v_store_w;
 assign v_lsu_base_addr_o    = opcode_ra_operand_o;   // rs1 from scalar regfile
 assign v_lsu_store_data_o   = v_fwd_store_w ? v_writeback_value_i : v_ra0_value_w;         // vs3 read via vector regfile
 assign v_lsu_vd_idx_o       = issue_rd_idx_w;        // vd for loads / vs3 idx for stores
+
+wire issue_is_strided_w     = fetch_instr_is_strided_i;
+assign v_lsu_is_strided_o   = issue_is_strided_w;
+assign v_lsu_stride_o       = opcode_rb_operand_o; 
+
+//-------------------------------------------------------------
+// Vector CSR
+//------------------------------------------------------------- 
+wire issue_vsetvli_w = fetch_instr_vsetvli_i;
+assign v_csr_opcode_valid_o = opcode_issue_r & issue_vsetvli_w;
+assign v_csr_opcode_i_o     = opcode_opcode_o;
+assign v_csr_rd_idx_o       = issue_rd_idx_w;
+assign v_csr_rs1_idx_o      = issue_ra_idx_w;      // rs1 is ra in issue stage
+assign v_csr_rs1_value_o    = opcode_ra_operand_o; // value of rs1
 //-------------------------------------------------------------
 // Pipeline status tracking
 //------------------------------------------------------------- 
@@ -488,11 +562,11 @@ begin
     end 
 end
 
-assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i;
-assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w;
-assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w;
-assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
-assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r;
+assign lsu_opcode_valid_o   = opcode_issue_r & ~take_interrupt_i & ~issue_vsetvli_w;
+assign exec_opcode_valid_o  = opcode_issue_r & ~issue_v_alu_w & ~issue_vsetvli_w;
+assign v_alu_opcode_valid_o = opcode_issue_r & issue_v_alu_w & ~issue_vsetvli_w;
+assign mul_opcode_valid_o   = enable_muldiv_w & opcode_issue_r & ~issue_vsetvli_w;
+assign div_opcode_valid_o   = enable_muldiv_w & opcode_issue_r & ~issue_vsetvli_w;
 assign interrupt_inhibit_o  = csr_pending_q || issue_csr_w;
 
 assign fetch_accept_o       = opcode_valid_w ? (opcode_accept_r & ~take_interrupt_i) : 1'b1;
@@ -530,6 +604,7 @@ u_regfile
 
 wire [VLEN-1:0] v_ra0_value_w;
 wire [VLEN-1:0] v_rb0_value_w;
+wire [VLEN-1:0] v_ra1_value_w;
 // Vector Register file: 1W2R
 riscv_v_regfile
 #(
@@ -547,8 +622,10 @@ u_v_regfile
 
     .ra0_i(v_regfile_ra_idx_w),
     .rb0_i(issue_rb_idx_w),
+    .ra1_i(issue_rd_idx_w),
     .ra0_value_o(v_ra0_value_w),
-    .rb0_value_o(v_rb0_value_w)
+    .rb0_value_o(v_rb0_value_w),
+    .ra1_value_o(v_ra1_value_w)
 );
 
 //-------------------------------------------------------------

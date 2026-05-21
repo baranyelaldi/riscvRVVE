@@ -58,10 +58,12 @@ module riscv_v_regfile
     ,input              rd0_we_i
     ,input  [  4:0]     ra0_i
     ,input  [  4:0]     rb0_i
+    ,input  [  4:0]     ra1_i // 3rd read port
 
     // Outputs
     ,output [VLEN-1:0]  ra0_value_o
     ,output [VLEN-1:0]  rb0_value_o
+    ,output [VLEN-1:0]  ra1_value_o
 );
 
 //-----------------------------------------------------------------
@@ -88,6 +90,9 @@ begin: REGFILE_XILINX_SINGLE
         ,.ra_value_o(ra0_value_o)
         ,.rb_value_o(rb0_value_o)
     );
+    // TODO: 3rd read port unsupported in Xilinx mode for now — vmacc won't synthesize correctly here.
+    // Fix by adding a second xilinx_2r1w instance (writes mirrored) when we need FPGA.
+    assign ra1_value_o = {VLEN{1'b0}};
 end
 //-----------------------------------------------------------------
 // Flop based register file
@@ -109,6 +114,7 @@ begin: REGFILE
 
     assign ra0_value_o = vregs_q[ra0_i];
     assign rb0_value_o = vregs_q[rb0_i];
+    assign ra1_value_o = vregs_q[ra1_i];
 
 //    //-------------------------------------------------------------
 //    // get_register: Read register file

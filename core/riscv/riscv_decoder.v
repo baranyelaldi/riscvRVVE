@@ -58,6 +58,9 @@ module riscv_decoder
     ,output                       v_lsu_o
     ,output                       v_to_scalar_o
     ,output                       rd_valid_o
+    ,output [ 2:0]                sew_o
+    ,output                       is_strided_o
+    ,output                       vsetvli_o
 );
 
 // Vector ALU instruction match (used by both invalid_w and v_alu_o)
@@ -75,16 +78,69 @@ wire v_alu_w =      ((opcode_i & `INST_VADD_VI_MASK) == `INST_VADD_VI)        ||
                     ((opcode_i & `INST_VSUB_VV_MASK) == `INST_VSUB_VV)        ||
                     ((opcode_i & `INST_VSUB_VX_MASK) == `INST_VSUB_VX)        ||
                     ((opcode_i & `INST_VMV_V_X_MASK) == `INST_VMV_V_X)        ||
-                    ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S);
+                    ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S)        ||
+                    ((opcode_i & `INST_VMACC_VV_MASK) == `INST_VMACC_VV)      ||
+                    ((opcode_i & `INST_VMACC_VX_MASK) == `INST_VMACC_VX)      ||
+                    ((opcode_i & `INST_VSLL_VI_MASK) == `INST_VSLL_VI)        ||
+                    ((opcode_i & `INST_VSLL_VX_MASK) == `INST_VSLL_VX)        ||
+                    ((opcode_i & `INST_VSLL_VV_MASK) == `INST_VSLL_VV)        ||
+                    ((opcode_i & `INST_VSRL_VI_MASK) == `INST_VSRL_VI)        ||
+                    ((opcode_i & `INST_VSRL_VX_MASK) == `INST_VSRL_VX)        ||
+                    ((opcode_i & `INST_VSRL_VV_MASK) == `INST_VSRL_VV)        ||
+                    ((opcode_i & `INST_VSRA_VI_MASK) == `INST_VSRA_VI)        ||
+                    ((opcode_i & `INST_VSRA_VX_MASK) == `INST_VSRA_VX)        ||
+                    ((opcode_i & `INST_VSRA_VV_MASK) == `INST_VSRA_VV)        ||
+                    ((opcode_i & `INST_VAND_VV_MASK) == `INST_VAND_VV)        ||
+                    ((opcode_i & `INST_VAND_VX_MASK) == `INST_VAND_VX)        ||
+                    ((opcode_i & `INST_VAND_VI_MASK) == `INST_VAND_VI)        ||
+                    ((opcode_i & `INST_VOR_VV_MASK) == `INST_VOR_VV)          ||
+                    ((opcode_i & `INST_VOR_VX_MASK) == `INST_VOR_VX)          ||
+                    ((opcode_i & `INST_VOR_VI_MASK) == `INST_VOR_VI)          ||
+                    ((opcode_i & `INST_VXOR_VV_MASK) == `INST_VXOR_VV)        ||
+                    ((opcode_i & `INST_VXOR_VX_MASK) == `INST_VXOR_VX)        ||
+                    ((opcode_i & `INST_VXOR_VI_MASK) == `INST_VXOR_VI)        ||
+                    ((opcode_i & `INST_VMSEQ_VV_MASK) == `INST_VMSEQ_VV)      ||
+                    ((opcode_i & `INST_VMSEQ_VX_MASK) == `INST_VMSEQ_VX)      ||
+                    ((opcode_i & `INST_VMSEQ_VI_MASK) == `INST_VMSEQ_VI)      ||
+                    ((opcode_i & `INST_VMSNE_VV_MASK) == `INST_VMSNE_VV)      ||
+                    ((opcode_i & `INST_VMSNE_VX_MASK) == `INST_VMSNE_VX)      ||
+                    ((opcode_i & `INST_VMSNE_VI_MASK) == `INST_VMSNE_VI)      ||
+                    ((opcode_i & `INST_VMSLTU_VV_MASK) == `INST_VMSLTU_VV)    ||
+                    ((opcode_i & `INST_VMSLTU_VX_MASK) == `INST_VMSLTU_VX)    ||
+                    ((opcode_i & `INST_VMSLT_VV_MASK) == `INST_VMSLT_VV)      ||
+                    ((opcode_i & `INST_VMSLT_VX_MASK) == `INST_VMSLT_VX)      ||
+                    ((opcode_i & `INST_VMSLEU_VV_MASK) == `INST_VMSLEU_VV)    ||
+                    ((opcode_i & `INST_VMSLEU_VX_MASK) == `INST_VMSLEU_VX)    ||
+                    ((opcode_i & `INST_VMSLEU_VI_MASK) == `INST_VMSLEU_VI)    ||
+                    ((opcode_i & `INST_VMSLE_VV_MASK) == `INST_VMSLE_VV)      ||
+                    ((opcode_i & `INST_VMSLE_VX_MASK) == `INST_VMSLE_VX)      ||
+                    ((opcode_i & `INST_VMSLE_VI_MASK) == `INST_VMSLE_VI)      ||
+                    ((opcode_i & `INST_VMSGTU_VI_MASK) == `INST_VMSGTU_VI)    ||
+                    ((opcode_i & `INST_VMSGTU_VX_MASK) == `INST_VMSGTU_VX)    ||
+                    ((opcode_i & `INST_VMSGT_VI_MASK) == `INST_VMSGT_VI)      ||
+                    ((opcode_i & `INST_VMSGT_VX_MASK) == `INST_VMSGT_VX)      ||
+                    ((opcode_i & `INST_VMAND_MM_MASK) == `INST_VMAND_MM)      ||
+                    ((opcode_i & `INST_VMOR_MM_MASK) == `INST_VMOR_MM)        ||
+                    ((opcode_i & `INST_VMXOR_MM_MASK) == `INST_VMXOR_MM)      ||
+                    ((opcode_i & `INST_VMNAND_MM_MASK) == `INST_VMNAND_MM)    ||
+                    ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M)        ||
+                    ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M)      ||
+                    ((opcode_i & `INST_VMV_S_X_MASK) == `INST_VMV_S_X)        ||
+                    ((opcode_i & `INST_VID_V_MASK) == `INST_VID_V);
 
 wire v_lsu_w =      ((opcode_i & `INST_VLE8_V_MASK) == `INST_VLE8_V)          ||
                     ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V)        ||
                     ((opcode_i & `INST_VLE32_V_MASK) == `INST_VLE32_V)        ||
                     ((opcode_i & `INST_VLE64_V_MASK) == `INST_VLE64_V)        ||
+                    ((opcode_i & `INST_VLSE32_V_MASK) == `INST_VLSE32_V)      ||
                     ((opcode_i & `INST_VSE8_V_MASK) == `INST_VSE8_V)          ||
                     ((opcode_i & `INST_VSE16_V_MASK) == `INST_VSE16_V)        ||
                     ((opcode_i & `INST_VSE32_V_MASK) == `INST_VSE32_V)        ||
-                    ((opcode_i & `INST_VSE64_V_MASK) == `INST_VSE64_V);
+                    ((opcode_i & `INST_VSE64_V_MASK) == `INST_VSE64_V)        ||
+                    ((opcode_i & `INST_VSSE32_V_MASK) == `INST_VSSE32_V);
+
+wire vsetvli_w =    ((opcode_i & `INST_VSETVLI_MASK) == `INST_VSETVLI)        ||
+                    ((opcode_i & `INST_VSETIVLI_MASK) == `INST_VSETIVLI);
 
 // Invalid instruction
 wire invalid_w =    valid_i &&
@@ -148,7 +204,8 @@ wire invalid_w =    valid_i &&
                     (enable_muldiv_i && (opcode_i & `INST_REM_MASK) == `INST_REM)       ||
                     (enable_muldiv_i && (opcode_i & `INST_REMU_MASK) == `INST_REMU) ||
                     v_alu_w ||
-                    v_lsu_w);
+                    v_lsu_w ||
+                    vsetvli_w);
 
 assign invalid_o = invalid_w;
 
@@ -195,7 +252,11 @@ assign rd_valid_o = ((opcode_i & `INST_JALR_MASK) == `INST_JALR)     ||
                     ((opcode_i & `INST_CSRRWI_MASK) == `INST_CSRRWI) ||
                     ((opcode_i & `INST_CSRRSI_MASK) == `INST_CSRRSI) ||
                     ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S) ||
-                    ((opcode_i & `INST_CSRRCI_MASK) == `INST_CSRRCI);
+                    ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M) ||
+                    ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M) ||
+                    ((opcode_i & `INST_CSRRCI_MASK) == `INST_CSRRCI) ||
+                    ((opcode_i & `INST_VSETVLI_MASK)  == `INST_VSETVLI)  ||
+                    ((opcode_i & `INST_VSETIVLI_MASK) == `INST_VSETIVLI);
 
 assign exec_o =     ((opcode_i & `INST_ANDI_MASK) == `INST_ANDI)  ||
                     ((opcode_i & `INST_ADDI_MASK) == `INST_ADDI)  ||
@@ -267,8 +328,21 @@ assign csr_o =      ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)            ||
 
 assign v_alu_o = v_alu_w;
 
-assign v_to_scalar_o = ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S);
+assign v_to_scalar_o = ((opcode_i & `INST_VMV_X_S_MASK) == `INST_VMV_X_S)     ||
+                       ((opcode_i & `INST_VCPOP_M_MASK) == `INST_VCPOP_M)     ||
+                       ((opcode_i & `INST_VFIRST_M_MASK) == `INST_VFIRST_M);
 
 assign v_lsu_o = v_lsu_w;
+
+assign sew_o = ((opcode_i & `INST_VLE8_V_MASK)  == `INST_VLE8_V)  ? 3'b000 :
+               ((opcode_i & `INST_VLE16_V_MASK) == `INST_VLE16_V) ? 3'b101 :
+               ((opcode_i & `INST_VSE8_V_MASK)  == `INST_VSE8_V)  ? 3'b000 :
+               ((opcode_i & `INST_VSE16_V_MASK) == `INST_VSE16_V) ? 3'b101 :
+               3'b110;  // default e32
+
+assign is_strided_o = ((opcode_i & `INST_VLSE32_V_MASK) == `INST_VLSE32_V) ||
+                      ((opcode_i & `INST_VSSE32_V_MASK) == `INST_VSSE32_V);
+
+assign vsetvli_o = vsetvli_w;
 
 endmodule
