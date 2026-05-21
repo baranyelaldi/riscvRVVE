@@ -68,6 +68,8 @@ module riscv_v_lsu
     ,input           is_strided_i
     ,input  [ 31:0]  stride_i
     ,input  [ 31:0]  vl_i
+    ,input [2:0]     sew_i
+
 
     // Outputs
     ,output [ 31:0]  mem_addr_o

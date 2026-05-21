@@ -328,6 +328,7 @@ u_v_exec
     ,.alu_v_func_i(alu_v_func_w)
     ,.v_to_scalar_i(v_to_scalar_w)
     ,.vl_i(csr_vl_current_w)
+    ,.sew_i(csr_sew_w)
 
     ,.writeback_valid_o(v_writeback_valid_w)
     ,.writeback_vd_idx_o(v_writeback_vd_idx_w)
@@ -509,6 +510,8 @@ u_v_lsu
     ,.is_strided_i       (v_lsu_is_strided_w)
     ,.stride_i           (v_lsu_stride_w)
     ,.vl_i               (csr_vl_current_w)
+    ,.sew_i              (csr_sew_w)
+
 
     // Memory interface (private wires; muxed below)
     ,.mem_data_rd_i      (mmu_lsu_data_rd_w)   // shared with scalar — see 6c
@@ -564,6 +567,7 @@ wire [31:0] v_csr_vtype_wdata_w;
 wire [31:0] v_csr_scalar_value_w;
 wire        v_csr_scalar_we_w;
 wire [ 4:0] v_csr_scalar_rd_w;
+wire [2:0]  csr_sew_w;
 
 // New wires from issue
 wire        v_csr_opcode_valid_w;
@@ -611,6 +615,7 @@ u_csr
     ,.v_csr_vtype_we_i(v_csr_vtype_we_w)
     ,.v_csr_vtype_wdata_i(v_csr_vtype_wdata_w)
     ,.csr_vl_current_o(csr_vl_current_w)
+    ,.csr_sew_o(csr_sew_w)
 
     // Outputs
     ,.csr_result_e1_value_o(csr_result_e1_value_w)

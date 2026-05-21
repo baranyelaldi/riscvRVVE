@@ -116,7 +116,9 @@
 `define VTYPE_VLMUL_HIGH 2
 `define VTYPE_VLMUL_LOW  0
 `define VTYPE_RESET      32'h000000d0  // vill=0, vma=1, vta=1, vsew=010 (e32), vlmul=000 (m1)
-
+`define SEW_E8   3'b000
+`define SEW_E16  3'b001
+`define SEW_E32  3'b010
 //--------------------------------------------------------------------
 // Instructions Masks
 //--------------------------------------------------------------------

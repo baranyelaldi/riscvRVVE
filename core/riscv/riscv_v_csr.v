@@ -83,7 +83,7 @@ wire [2:0] req_vsew  = vtypei[5:3];
 wire [2:0] req_vlmul = vtypei[2:0];
 
 // Validate scope: SEW ∈ {e8, e16, e32}, LMUL = m1 (000)
-wire vsew_valid  = (req_vsew == 3'b000) || (req_vsew == 3'b101) || (req_vsew == 3'b010);
+wire vsew_valid  = (req_vsew == 3'b000) || (req_vsew == 3'b001) || (req_vsew == 3'b010);
 wire vlmul_valid = (req_vlmul == 3'b000);
 wire vtype_valid = vsew_valid && vlmul_valid;
 
@@ -92,7 +92,7 @@ reg [31:0] vlmax;
 always @* begin
     case (req_vsew)
         3'b000: vlmax = VLEN / 8;    // = 16 for VLEN=128
-        3'b101: vlmax = VLEN / 16;   // = 8
+        3'b001: vlmax = VLEN / 16;   // = 8
         3'b010: vlmax = VLEN / 32;   // = 4
         default: vlmax = 0;           // invalid
     endcase

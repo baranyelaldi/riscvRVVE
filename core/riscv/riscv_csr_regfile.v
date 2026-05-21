@@ -69,6 +69,7 @@ module riscv_csr_regfile
     ,input           v_csr_vtype_we_i
     ,input [31:0]    v_csr_vtype_wdata_i
     ,output [31:0]   csr_vl_current_o
+    ,output [2:0]    csr_sew_o
 
     // CSR read port
     ,input           csr_ren_i
@@ -650,6 +651,7 @@ end
 assign csr_branch_o = branch_r;
 assign csr_target_o = branch_target_r;
 assign csr_vl_current_o = csr_vl_q;
+assign csr_sew_o = csr_vtype_q[5:3];
 
 `ifdef verilator
 function [31:0] get_mcycle; /*verilator public*/

@@ -42,7 +42,6 @@ module riscv_v_alu
 #(
     parameter VLEN = 128,
     parameter ELEN = 32
-
 )
 (
     // Inputs
@@ -51,6 +50,7 @@ module riscv_v_alu
     ,input  [VLEN-1:0]  v_operand_vs2_i
     ,input  [VLEN-1:0]  v_operand_vd_i
     ,input  [ 31:0]     vl_i
+    ,input  [  2:0]     sew_i
 
     // Outputs
     ,output [VLEN-1:0]  v_result_o
@@ -61,7 +61,11 @@ module riscv_v_alu
 //-----------------------------------------------------------------
 `include "riscv_defs.v"
 
-localparam LANES = VLEN / ELEN;
+// Lane counts per SEW. With VLEN=128: e8=16, e16=8, e32=4.
+localparam LANES_E8  = VLEN / 8;
+localparam LANES_E16 = VLEN / 16;
+localparam LANES_E32 = VLEN / 32;
+localparam LANES     = LANES_E32;  // retained for mask logical/reduction iteration bound
 
 //-----------------------------------------------------------------
 // Registers
@@ -85,10 +89,26 @@ begin
        `ALU_V_ADD:
        begin
             result_r = {VLEN{1'b0}};
-            for (i=0; i<LANES; i=i+1) begin
-            if(i < vl_i)
-            result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] + v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN];
-            end
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] +
+                            v_operand_vs1_i[(i+1)*8-1 -: 8];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] +
+                            v_operand_vs1_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] +
+                            v_operand_vs1_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
        // VSUB: vd[i] = vs2[i] - vs1[i]
@@ -96,10 +116,26 @@ begin
        `ALU_V_SUB:
        begin
             result_r = {VLEN{1'b0}};
-            for (i=0; i<LANES; i=i+1) begin
-            if(i < vl_i)
-            result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] - v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN];
-            end
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] -
+                            v_operand_vs1_i[(i+1)*8-1 -: 8];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] -
+                            v_operand_vs1_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] -
+                            v_operand_vs1_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
        // VRSUB: vd[i] = vs1[i] - vs2[i]
@@ -107,369 +143,636 @@ begin
        `ALU_V_RSUB:
        begin
             result_r = {VLEN{1'b0}};
-            for (i=0; i<LANES; i=i+1) begin
-            if(i < vl_i)   
-            result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] - v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN];
-            end
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs1_i[(i+1)*8-1 -: 8] -
+                            v_operand_vs2_i[(i+1)*8-1 -: 8];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs1_i[(i+1)*16-1 -: 16] -
+                            v_operand_vs2_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs1_i[(i+1)*32-1 -: 32] -
+                            v_operand_vs2_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMINU: vd[i] = (vs1[i] < vs2[i]) ? vs1[i] : vs2[i] - unsigned
+       // VMINU: vd[i] = min(vs1[i], vs2[i]) unsigned
        //----------------------------------------------
        `ALU_V_MINU:
        begin
             result_r = {VLEN{1'b0}};
-            for (i=0; i<LANES; i=i+1) begin
-                if(i < vl_i) begin 
-                result_r[(i+1)*ELEN-1 -: ELEN] = ((v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] < v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN])
-                ? v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] : v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            (v_operand_vs1_i[(i+1)*8-1 -: 8] < v_operand_vs2_i[(i+1)*8-1 -: 8])
+                            ? v_operand_vs1_i[(i+1)*8-1 -: 8]
+                            : v_operand_vs2_i[(i+1)*8-1 -: 8];
                 end
-            end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            (v_operand_vs1_i[(i+1)*16-1 -: 16] < v_operand_vs2_i[(i+1)*16-1 -: 16])
+                            ? v_operand_vs1_i[(i+1)*16-1 -: 16]
+                            : v_operand_vs2_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            (v_operand_vs1_i[(i+1)*32-1 -: 32] < v_operand_vs2_i[(i+1)*32-1 -: 32])
+                            ? v_operand_vs1_i[(i+1)*32-1 -: 32]
+                            : v_operand_vs2_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMAXU: vd[i] = (vs1[i] > vs2[i]) ? vs1[i] : vs2[i] - unsigned
+       // VMAXU: vd[i] = max(vs1[i], vs2[i]) unsigned
        //----------------------------------------------
        `ALU_V_MAXU:
        begin
             result_r = {VLEN{1'b0}};
-            for (i=0; i<LANES; i=i+1) begin
-                if(i < vl_i) begin 
-                result_r[(i+1)*ELEN-1 -: ELEN] = ((v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] > v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN])
-                ? v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] : v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            (v_operand_vs1_i[(i+1)*8-1 -: 8] > v_operand_vs2_i[(i+1)*8-1 -: 8])
+                            ? v_operand_vs1_i[(i+1)*8-1 -: 8]
+                            : v_operand_vs2_i[(i+1)*8-1 -: 8];
                 end
-            end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            (v_operand_vs1_i[(i+1)*16-1 -: 16] > v_operand_vs2_i[(i+1)*16-1 -: 16])
+                            ? v_operand_vs1_i[(i+1)*16-1 -: 16]
+                            : v_operand_vs2_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            (v_operand_vs1_i[(i+1)*32-1 -: 32] > v_operand_vs2_i[(i+1)*32-1 -: 32])
+                            ? v_operand_vs1_i[(i+1)*32-1 -: 32]
+                            : v_operand_vs2_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMUL: vd[i] = (signed)vs1[i] * (signed)vs2[i] - low ELEN bits
+       // VMUL: vd[i] = (signed)vs1[i] * (signed)vs2[i], low SEW bits only
        //----------------------------------------------
        `ALU_V_MUL:
        begin
             result_r = {VLEN{1'b0}};
-            for (i=0; i<LANES; i=i+1) begin
-            if(i < vl_i)
-            result_r[(i+1)*ELEN-1 -: ELEN] = $signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) * $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]);
-            end
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            $signed(v_operand_vs2_i[(i+1)*8-1 -: 8]) *
+                            $signed(v_operand_vs1_i[(i+1)*8-1 -: 8]);
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            $signed(v_operand_vs2_i[(i+1)*16-1 -: 16]) *
+                            $signed(v_operand_vs1_i[(i+1)*16-1 -: 16]);
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            $signed(v_operand_vs2_i[(i+1)*32-1 -: 32]) *
+                            $signed(v_operand_vs1_i[(i+1)*32-1 -: 32]);
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMVX: vd[i] = vs1
+       // VMACC: vd[i] = vd[i] + vs1[i] * vs2[i]
        //----------------------------------------------
-       `ALU_V_MV_X: 
+       `ALU_V_MACC:
        begin
             result_r = {VLEN{1'b0}};
-            for (i = 0; i < LANES; i = i + 1) begin
-            if (i < vl_i)
-            result_r[(i+1)*ELEN-1 -: ELEN] = v_operand_vs1_i[ELEN-1:0];
-            end
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vd_i[(i+1)*8-1 -: 8] +
+                            (v_operand_vs1_i[(i+1)*8-1 -: 8] *
+                             v_operand_vs2_i[(i+1)*8-1 -: 8]);
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vd_i[(i+1)*16-1 -: 16] +
+                            (v_operand_vs1_i[(i+1)*16-1 -: 16] *
+                             v_operand_vs2_i[(i+1)*16-1 -: 16]);
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vd_i[(i+1)*32-1 -: 32] +
+                            (v_operand_vs1_i[(i+1)*32-1 -: 32] *
+                             v_operand_vs2_i[(i+1)*32-1 -: 32]);
+                end
+            endcase
        end
        //----------------------------------------------
-       // VREDSUM: vd[0] = vs1[0] + sum vs2[i]
+       // VSLL: vd[i] = vs2[i] << vs1[i][SHIFT_BITS-1:0]
        //----------------------------------------------
-       `ALU_V_REDSUM:
+       `ALU_V_SLL:
        begin
-            sum_r = v_operand_vs1_i[ELEN-1:0];
-            for (i=0; i<LANES; i=i+1)
-            sum_r = sum_r + v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN];
-            result_r = {{(VLEN-ELEN){1'b0}}, sum_r};
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] <<
+                            v_operand_vs1_i[i*8 +: 3];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] <<
+                            v_operand_vs1_i[i*16 +: 4];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] <<
+                            v_operand_vs1_i[i*32 +: 5];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMVXS
+       // VSRL: logical right shift
        //----------------------------------------------
-       `ALU_V_MV_X_S: 
+       `ALU_V_SRL:
        begin
-          result_r = {{(VLEN-ELEN){1'b0}}, v_operand_vs2_i[ELEN-1:0]};
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] >>
+                            v_operand_vs1_i[i*8 +: 3];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] >>
+                            v_operand_vs1_i[i*16 +: 4];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] >>
+                            v_operand_vs1_i[i*32 +: 5];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMACC
+       // VSRA: arithmetic right shift (sign-extend)
        //----------------------------------------------
-       `ALU_V_MACC: 
+       `ALU_V_SRA:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i=0; i<LANES; i=i+1) begin
-               if(i < vl_i) begin
-               result_r[(i+1)*ELEN-1 -: ELEN] =
-                    v_operand_vd_i[(i+1)*ELEN-1 -: ELEN] +
-                    (v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN] *
-                    v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]);
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            $signed(v_operand_vs2_i[(i+1)*8-1 -: 8]) >>>
+                            v_operand_vs1_i[i*8 +: 3];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            $signed(v_operand_vs2_i[(i+1)*16-1 -: 16]) >>>
+                            v_operand_vs1_i[i*16 +: 4];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            $signed(v_operand_vs2_i[(i+1)*32-1 -: 32]) >>>
+                            v_operand_vs1_i[i*32 +: 5];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VSLL
+       // VAND: per-lane bitwise AND. SEW determines which lanes are gated by vl.
        //----------------------------------------------
-       `ALU_V_SLL: 
+       `ALU_V_AND:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if(i < vl_i) begin
-               result_r[(i+1)*ELEN-1 -: ELEN] =
-                    v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <<
-                    v_operand_vs1_i[i*ELEN +: 5];
-               end
-          end
-       end
-       //----------------------------------------------
-       // VSRL
-       //----------------------------------------------
-        `ALU_V_SRL: 
-        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if(i < vl_i) begin
-               result_r[(i+1)*ELEN-1 -: ELEN] =
-                    v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] >>
-                    v_operand_vs1_i[i*ELEN +: 5];
-               end
-          end
-       end
-       //----------------------------------------------
-       // VSRA
-       //----------------------------------------------
-       `ALU_V_SRA: 
-       begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if(i < vl_i) begin
-               result_r[(i+1)*ELEN-1 -: ELEN] =
-                    $signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) >>>
-                    v_operand_vs1_i[i*ELEN +: 5];
-               end
-          end
-       end
-       //----------------------------------------------
-       // VAND
-       //----------------------------------------------
-       `ALU_V_AND: 
-       begin
-          result_r = {VLEN{1'b0}};
-          if(i < vl_i) 
-               result_r = v_operand_vs1_i & v_operand_vs2_i;
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] &
+                            v_operand_vs1_i[(i+1)*8-1 -: 8];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] &
+                            v_operand_vs1_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] &
+                            v_operand_vs1_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
        // VOR
        //----------------------------------------------
        `ALU_V_OR:
        begin
-          result_r = {VLEN{1'b0}};
-          if(i < vl_i) 
-               result_r = v_operand_vs1_i | v_operand_vs2_i;
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] |
+                            v_operand_vs1_i[(i+1)*8-1 -: 8];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] |
+                            v_operand_vs1_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] |
+                            v_operand_vs1_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
        // VXOR
        //----------------------------------------------
        `ALU_V_XOR:
        begin
-          result_r = {VLEN{1'b0}};
-          if(i < vl_i) 
-               result_r = v_operand_vs1_i ^ v_operand_vs2_i;
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] =
+                            v_operand_vs2_i[(i+1)*8-1 -: 8] ^
+                            v_operand_vs1_i[(i+1)*8-1 -: 8];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] =
+                            v_operand_vs2_i[(i+1)*16-1 -: 16] ^
+                            v_operand_vs1_i[(i+1)*16-1 -: 16];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] =
+                            v_operand_vs2_i[(i+1)*32-1 -: 32] ^
+                            v_operand_vs1_i[(i+1)*32-1 -: 32];
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSEQ
+       // VMVX: broadcast scalar rs1 to all active lanes
        //----------------------------------------------
-       `ALU_V_MSEQ: 
+       `ALU_V_MV_X:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] ==
-                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] = v_operand_vs1_i[7:0];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] = v_operand_vs1_i[15:0];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] = v_operand_vs1_i[31:0];
+                end
+            endcase
+       end
+       //----------------------------------------------
+       // VREDSUM: vd[0] = vs1[0] + sum vs2[0..vl-1]; result in low SEW bits
+       //----------------------------------------------
+       `ALU_V_REDSUM:
+       begin
+            case (sew_i)
+                `SEW_E8: begin
+                    sum_r = {24'b0, v_operand_vs1_i[7:0]};
+                    for (i = 0; i < LANES_E8; i = i + 1) begin
+                        if (i < vl_i)
+                            sum_r = sum_r + {24'b0, v_operand_vs2_i[(i+1)*8-1 -: 8]};
+                    end
+                    result_r = {{(VLEN-8){1'b0}}, sum_r[7:0]};
+                end
+                `SEW_E16: begin
+                    sum_r = {16'b0, v_operand_vs1_i[15:0]};
+                    for (i = 0; i < LANES_E16; i = i + 1) begin
+                        if (i < vl_i)
+                            sum_r = sum_r + {16'b0, v_operand_vs2_i[(i+1)*16-1 -: 16]};
+                    end
+                    result_r = {{(VLEN-16){1'b0}}, sum_r[15:0]};
+                end
+                default: begin
+                    sum_r = v_operand_vs1_i[31:0];
+                    for (i = 0; i < LANES_E32; i = i + 1) begin
+                        if (i < vl_i)
+                            sum_r = sum_r + v_operand_vs2_i[(i+1)*32-1 -: 32];
+                    end
+                    result_r = {{(VLEN-32){1'b0}}, sum_r};
+                end
+            endcase
+       end
+       //----------------------------------------------
+       // VMVXS: rd = sign-extended vs2[0] (SEW-wide)
+       //----------------------------------------------
+       `ALU_V_MV_X_S:
+       begin
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8:  result_r[31:0] = {{24{v_operand_vs2_i[7]}},  v_operand_vs2_i[7:0]};
+                `SEW_E16: result_r[31:0] = {{16{v_operand_vs2_i[15]}}, v_operand_vs2_i[15:0]};
+                default:  result_r[31:0] = v_operand_vs2_i[31:0];
+            endcase
+       end
+       //----------------------------------------------
+       // VMSEQ: mask bit i = (vs2[i] == vs1[i])
+       //----------------------------------------------
+       `ALU_V_MSEQ:
+       begin
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*8-1 -: 8] == v_operand_vs1_i[(i+1)*8-1 -: 8])
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*16-1 -: 16] == v_operand_vs1_i[(i+1)*16-1 -: 16])
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*32-1 -: 32] == v_operand_vs1_i[(i+1)*32-1 -: 32])
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
        // VMSNE
        //----------------------------------------------
-       `ALU_V_MSNE: 
+       `ALU_V_MSNE:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] !=
-                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*8-1 -: 8] != v_operand_vs1_i[(i+1)*8-1 -: 8])
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*16-1 -: 16] != v_operand_vs1_i[(i+1)*16-1 -: 16])
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*32-1 -: 32] != v_operand_vs1_i[(i+1)*32-1 -: 32])
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSLTU
+       // VMSLTU (unsigned <)
        //----------------------------------------------
-       `ALU_V_MSLTU: 
+       `ALU_V_MSLTU:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <
-                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*8-1 -: 8] < v_operand_vs1_i[(i+1)*8-1 -: 8])
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*16-1 -: 16] < v_operand_vs1_i[(i+1)*16-1 -: 16])
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*32-1 -: 32] < v_operand_vs1_i[(i+1)*32-1 -: 32])
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSLT
+       // VMSLT (signed <)
        //----------------------------------------------
-       `ALU_V_MSLT: 
+       `ALU_V_MSLT:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) <
-                    $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*8-1 -: 8]) < $signed(v_operand_vs1_i[(i+1)*8-1 -: 8]))
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*16-1 -: 16]) < $signed(v_operand_vs1_i[(i+1)*16-1 -: 16]))
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*32-1 -: 32]) < $signed(v_operand_vs1_i[(i+1)*32-1 -: 32]))
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSLEU
+       // VMSLEU (unsigned <=)
        //----------------------------------------------
-       `ALU_V_MSLEU: 
+       `ALU_V_MSLEU:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] <=
-                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*8-1 -: 8] <= v_operand_vs1_i[(i+1)*8-1 -: 8])
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*16-1 -: 16] <= v_operand_vs1_i[(i+1)*16-1 -: 16])
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*32-1 -: 32] <= v_operand_vs1_i[(i+1)*32-1 -: 32])
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSLE
+       // VMSLE (signed <=)
        //----------------------------------------------
-       `ALU_V_MSLE: 
+       `ALU_V_MSLE:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) <=
-                    $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*8-1 -: 8]) <= $signed(v_operand_vs1_i[(i+1)*8-1 -: 8]))
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*16-1 -: 16]) <= $signed(v_operand_vs1_i[(i+1)*16-1 -: 16]))
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*32-1 -: 32]) <= $signed(v_operand_vs1_i[(i+1)*32-1 -: 32]))
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSGTU
+       // VMSGTU (unsigned >)
        //----------------------------------------------
        `ALU_V_MSGTU:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if (v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN] >
-                    v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN])
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*8-1 -: 8] > v_operand_vs1_i[(i+1)*8-1 -: 8])
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*16-1 -: 16] > v_operand_vs1_i[(i+1)*16-1 -: 16])
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && v_operand_vs2_i[(i+1)*32-1 -: 32] > v_operand_vs1_i[(i+1)*32-1 -: 32])
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMSGT
+       // VMSGT (signed >)
        //----------------------------------------------
-       `ALU_V_MSGT: 
+       `ALU_V_MSGT:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               if ($signed(v_operand_vs2_i[(i+1)*ELEN-1 -: ELEN]) >
-                    $signed(v_operand_vs1_i[(i+1)*ELEN-1 -: ELEN]))
-                    result_r[i] = 1'b1;
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*8-1 -: 8]) > $signed(v_operand_vs1_i[(i+1)*8-1 -: 8]))
+                        result_r[i] = 1'b1;
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*16-1 -: 16]) > $signed(v_operand_vs1_i[(i+1)*16-1 -: 16]))
+                        result_r[i] = 1'b1;
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i && $signed(v_operand_vs2_i[(i+1)*32-1 -: 32]) > $signed(v_operand_vs1_i[(i+1)*32-1 -: 32]))
+                        result_r[i] = 1'b1;
+                end
+            endcase
        end
        //----------------------------------------------
-       // VMAND
+       // Mask logicals: mask format is 1-bit-per-element regardless of SEW.
+       // Iterate up to LANES_E8 (max possible lanes); gate by vl_i.
        //----------------------------------------------
-       `ALU_V_MAND: 
+       `ALU_V_MAND:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               result_r[i] = v_operand_vs2_i[i] & v_operand_vs1_i[i];
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            for (i = 0; i < LANES_E8; i = i + 1) begin
+                if (i < vl_i)
+                    result_r[i] = v_operand_vs2_i[i] & v_operand_vs1_i[i];
+            end
+       end
+       `ALU_V_MOR:
+       begin
+            result_r = {VLEN{1'b0}};
+            for (i = 0; i < LANES_E8; i = i + 1) begin
+                if (i < vl_i)
+                    result_r[i] = v_operand_vs2_i[i] | v_operand_vs1_i[i];
+            end
+       end
+       `ALU_V_MXOR:
+       begin
+            result_r = {VLEN{1'b0}};
+            for (i = 0; i < LANES_E8; i = i + 1) begin
+                if (i < vl_i)
+                    result_r[i] = v_operand_vs2_i[i] ^ v_operand_vs1_i[i];
+            end
+       end
+       `ALU_V_MNAND:
+       begin
+            result_r = {VLEN{1'b0}};
+            for (i = 0; i < LANES_E8; i = i + 1) begin
+                if (i < vl_i)
+                    result_r[i] = ~(v_operand_vs2_i[i] & v_operand_vs1_i[i]);
+            end
        end
        //----------------------------------------------
-       // VMOR
+       // VCPOP: count 1-bits in first vl_i bits of vs2 (mask). SEW-independent.
        //----------------------------------------------
-       `ALU_V_MOR: 
+       `ALU_V_CPOP:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               result_r[i] = v_operand_vs2_i[i] | v_operand_vs1_i[i];
-               end
-          end
+            result_r = {VLEN{1'b0}};
+            for (i = 0; i < LANES_E8; i = i + 1) begin
+                if (i < vl_i)
+                    result_r[31:0] = result_r[31:0] + {31'b0, v_operand_vs2_i[i]};
+            end
        end
        //----------------------------------------------
-       // VMXOR
+       // VFIRST: index of lowest set bit in first vl_i bits of vs2, or -1.
        //----------------------------------------------
-       `ALU_V_MXOR: 
+       `ALU_V_FIRST:
        begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               result_r[i] = v_operand_vs2_i[i] ^ v_operand_vs1_i[i];
-               end
-          end
-       end
-       //----------------------------------------------
-       // VMNAND
-       //----------------------------------------------
-       `ALU_V_MNAND: 
-       begin
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i) begin
-               result_r[i] = ~(v_operand_vs2_i[i] & v_operand_vs1_i[i]);
-               end
-          end
-       end
-       //----------------------------------------------
-       // VCPOP
-       //----------------------------------------------
-       `ALU_V_CPOP: 
-       begin
-          // Count 1-bits in low LANES bits of vs2 (the mask)
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               result_r[31:0] = result_r[31:0] + {31'b0, v_operand_vs2_i[i]};
-          end
-       end
-       //----------------------------------------------
-       // VFIRST
-       //----------------------------------------------
-       `ALU_V_FIRST: 
-       begin
-          // Index of first 1-bit (LSB-first), or -1 if mask is empty
-          result_r = {VLEN{1'b0}};
-          result_r[31:0] = 32'hFFFFFFFF;          // default: no match
-          // Iterate high-to-low so the lowest set bit wins (last assignment)
-          for (i = LANES-1; i >= 0; i = i - 1) begin
-               if (v_operand_vs2_i[i])
+            result_r = {VLEN{1'b0}};
+            result_r[31:0] = 32'hFFFFFFFF;  // default: no match
+            // Iterate high-to-low so the lowest set bit wins (last assignment)
+            for (i = LANES_E8 - 1; i >= 0; i = i - 1) begin
+                if (i < vl_i && v_operand_vs2_i[i])
                     result_r[31:0] = i[31:0];
-          end
+            end
        end
        //----------------------------------------------
-       // VMVSX
+       // VMVSX: write SEW-wide rs1 to lane 0; other lanes zero
        //----------------------------------------------
-       `ALU_V_MV_S_X: 
+       `ALU_V_MV_S_X:
        begin
-          // Write rs1 to lane 0 only; zero other lanes (tail-agnostic)
-          result_r = {VLEN{1'b0}};
-          if (vl_i > 0)
-          result_r[ELEN-1:0] = v_operand_vs1_i[ELEN-1:0];
+            result_r = {VLEN{1'b0}};
+            if (vl_i > 0) begin
+                case (sew_i)
+                    `SEW_E8:  result_r[7:0]  = v_operand_vs1_i[7:0];
+                    `SEW_E16: result_r[15:0] = v_operand_vs1_i[15:0];
+                    default:  result_r[31:0] = v_operand_vs1_i[31:0];
+                endcase
+            end
        end
        //----------------------------------------------
-       // VID
+       // VID: vd[i] = i, written into SEW-wide slot
        //----------------------------------------------
-       `ALU_V_VID: 
+       `ALU_V_VID:
        begin
-          // vd[i] = i for each lane
-          result_r = {VLEN{1'b0}};
-          for (i = 0; i < LANES; i = i + 1) begin
-               if (i < vl_i)
-               result_r[(i+1)*ELEN-1 -: ELEN] = i[ELEN-1:0];
-          end
+            result_r = {VLEN{1'b0}};
+            case (sew_i)
+                `SEW_E8: for (i = 0; i < LANES_E8; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*8-1 -: 8] = i[7:0];
+                end
+                `SEW_E16: for (i = 0; i < LANES_E16; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*16-1 -: 16] = i[15:0];
+                end
+                default: for (i = 0; i < LANES_E32; i = i + 1) begin
+                    if (i < vl_i)
+                        result_r[(i+1)*32-1 -: 32] = i[31:0];
+                end
+            endcase
        end
 
-       default  :
+       default:
             result_r = {VLEN{1'b0}};
     endcase
 end

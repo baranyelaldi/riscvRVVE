@@ -80,6 +80,7 @@ module riscv_csr
     ,input           v_csr_vtype_we_i
     ,input [31:0]    v_csr_vtype_wdata_i
     ,output [31:0]   csr_vl_current_o
+    ,output [2:0]    csr_sew_o
 
     // Outputs
     ,output [ 31:0]  csr_result_e1_value_o
@@ -201,6 +202,7 @@ u_csrfile
     ,.v_csr_vtype_we_i(v_csr_vtype_we_i)
     ,.v_csr_vtype_wdata_i(v_csr_vtype_wdata_i)
     ,.csr_vl_current_o(csr_vl_current_o)
+    ,.csr_sew_o(csr_sew_o)
 
     // CSR register writes (WB)
     ,.csr_waddr_i(csr_writeback_write_i ? csr_writeback_waddr_i : 12'b0)
