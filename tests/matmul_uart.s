@@ -31,53 +31,45 @@ col_loop:
     addi    a2, a2, 1
     blt     a2, a3, row_loop
 
-    # Print all 16 results over UART as 8 hex chars + newline each.
-    # Expected output:
-    #   0000005A  (90)    0000006E  (110)
-    #   00000064  (100)   00000078  (120)
-    #   000000CA  (202)   000000FE  (254)
-    #   000000E4  (228)   00000118  (280)
-    #   0000013A  (314)   0000018E  (398)
-    #   00000164  (356)   000001B8  (440)
-    #   000001AA  (426)   0000021E  (542)
-    #   000001E4  (484)   00000258  (600)
-    li      s0, 0x4000              # pointer into result array
-    li      s1, 16                  # 16 elements
+    # Check all 16 results against expected values
+    li      s0, 0x4000
+    li      s1, 16
+    la      s2, expected
 
-print_loop:
-    lw      a0, 0(s0)               # load one result word
-    call    print_hex               # print as 8 hex chars + newline
+check_loop:
+    lw      a0, 0(s0)
+    lw      a1, 0(s2)
+    bne     a0, a1, fail
+
     addi    s0, s0, 4
+    addi    s2, s2, 4
     addi    s1, s1, -1
-    bnez    s1, print_loop
+    bnez    s1, check_loop
 
-1:  j       1b                      # halt
+    la      a0, msg_pass
+    call    uart_print_str
+    j       done
 
-# -----------------------------------------------------------------------
-# print_hex: send a0 to UART as 8 uppercase hex chars followed by '\n'
-# Clobbers: t1-t5
-# -----------------------------------------------------------------------
-print_hex:
-    li      t1, 0x80000000          # UART TX address
-    li      t2, 28                  # start with the top nibble (bits 31:28)
-    li      t3, 8                   # 8 nibbles total
-nibble_loop:
-    srl     t4, a0, t2              # shift nibble into bits [3:0]
-    andi    t4, t4, 0xF
-    li      t5, 10
-    blt     t4, t5, nibble_is_digit
-    addi    t4, t4, 55              # 'A' - 10 = 55  →  A-F
-    j       nibble_send
-nibble_is_digit:
-    addi    t4, t4, 48              # '0' = 48  →  0-9
-nibble_send:
-    sw      t4, 0(t1)               # one byte to UART
-    addi    t2, t2, -4
-    addi    t3, t3, -1
-    bnez    t3, nibble_loop
-    li      t4, 10                  # '\n'
-    sw      t4, 0(t1)
-    ret
+fail:
+    la      a0, msg_fail
+    call    uart_print_str
+    lw      a0, 0(s0)               # got
+    call    uart_print_hex
+    lw      a0, 0(s2)               # expected
+    call    uart_print_hex
+
+done:
+1:  j       1b
+
+msg_pass:   .asciz "PASS\n"
+msg_fail:   .asciz "FAIL\n"
+
+.balign 4
+expected:
+    .word 90,  100, 110, 120
+    .word 202, 228, 254, 280
+    .word 314, 356, 398, 440
+    .word 426, 484, 542, 600
 
 .balign 4
 data_A:                             # row-major 4x4
@@ -92,3 +84,5 @@ data_B:                             # column-major 4x4 (= A^T)
     .word 2, 6, 10, 14
     .word 3, 7, 11, 15
     .word 4, 8, 12, 16
+
+.include "uart_lib.s"
