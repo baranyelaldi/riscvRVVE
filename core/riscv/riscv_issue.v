@@ -74,6 +74,7 @@ module riscv_issue
     ,input           fetch_instr_v_lsu_i
     ,input           fetch_instr_is_strided_i
     ,input           fetch_instr_vsetvli_i
+    ,input  [  2:0]  sew_i
     ,input           v_lsu_busy_i
     ,input           fetch_instr_rd_valid_i
     ,input           fetch_instr_invalid_i
@@ -311,8 +312,30 @@ wire          is_vi_w = (v_funct3_w == 3'b011);
 wire [4:0]  v_imm5_w = opcode_opcode_o[19:15];
 wire [31:0] v_imm_signext_w = {{27{v_imm5_w[4]}}, v_imm5_w};
 
-wire [VLEN-1:0] v_scalar_broadcast_w = {(VLEN/ELEN){opcode_ra_operand_o}};
-wire [VLEN-1:0] v_imm_broadcast_w    = {(VLEN/ELEN){v_imm_signext_w}};
+// SEW-aware scalar/immediate broadcast.
+// The element value must be replicated across EVERY lane at the active SEW:
+//   e8  -> low 8 bits  x (VLEN/8) lanes
+//   e16 -> low 16 bits x (VLEN/16) lanes
+//   e32 -> low 32 bits x (VLEN/32) lanes
+// A fixed 32-bit replication would leave zero gaps in the byte/halfword lanes.
+reg [VLEN-1:0] v_scalar_broadcast_w;
+reg [VLEN-1:0] v_imm_broadcast_w;
+always @* begin
+    case (sew_i)
+        `SEW_E8: begin
+            v_scalar_broadcast_w = {(VLEN/8){opcode_ra_operand_o[7:0]}};
+            v_imm_broadcast_w    = {(VLEN/8){v_imm_signext_w[7:0]}};
+        end
+        `SEW_E16: begin
+            v_scalar_broadcast_w = {(VLEN/16){opcode_ra_operand_o[15:0]}};
+            v_imm_broadcast_w    = {(VLEN/16){v_imm_signext_w[15:0]}};
+        end
+        default: begin
+            v_scalar_broadcast_w = {(VLEN/32){opcode_ra_operand_o}};
+            v_imm_broadcast_w    = {(VLEN/32){v_imm_signext_w}};
+        end
+    endcase
+end
 
 wire v_fwd_vs1_w = is_vv_w && v_writeback_valid_i && (v_writeback_vd_idx_i == issue_ra_idx_w);
 wire v_fwd_vs2_w = v_writeback_valid_i && (v_writeback_vd_idx_i == issue_rb_idx_w);

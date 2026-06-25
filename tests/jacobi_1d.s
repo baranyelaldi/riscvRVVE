@@ -35,6 +35,11 @@ _start:
     # Number of B cells to write = N - 2 (we skip B[0] and B[N-1])
     addi    t4, a2, -2          # t4 = remaining = N-2 = 14
 
+    # -----------------------------------------------------------
+    # CYCLE MEASUREMENT — snapshot before kernel
+    # -----------------------------------------------------------
+    csrr    s0, cycle           # s0 = start cycle
+
 # ===========================================================
 # CHUNK LOOP — process vl cells per iteration
 # ===========================================================
@@ -76,6 +81,14 @@ chunk_loop:
     # -----------------------------------------------------------
     sub     t4, t4, a3
     bnez    t4, chunk_loop
+
+    # ===========================================================
+    # CYCLE MEASUREMENT — snapshot after kernel, store delta at 0x9000
+    # ===========================================================
+    csrr    s1, cycle           # s1 = end cycle
+    sub     s2, s1, s0          # s2 = elapsed cycles
+    li      t0, 0x9000
+    sw      s2, 0(t0)           # ram[0x9000] = cycle count  (= ram[9216])
 
     # ===========================================================
     # Done — clean exit

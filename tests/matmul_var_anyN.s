@@ -33,6 +33,11 @@ _start:
     mv      t0, a0              # t0 = A_row_ptr = &A[0][0]
     li      t6, 0               # i counter
 
+    # -----------------------------------------------------------
+    # CYCLE MEASUREMENT — snapshot before kernel
+    # -----------------------------------------------------------
+    csrr    s0, cycle           # s0 = start cycle
+
 # ===============================================================
 # OUTER ROW LOOP  i = 0..N-1
 # ===============================================================
@@ -110,6 +115,14 @@ inner_loop:
     # i++; loop if i < N
     addi    t6, t6, 1
     blt     t6, a3, row_loop
+
+    # -----------------------------------------------------------
+    # CYCLE MEASUREMENT — snapshot after kernel, store delta at 0x9000
+    # -----------------------------------------------------------
+    csrr    s1, cycle           # s1 = end cycle
+    sub     s2, s1, s0          # s2 = elapsed cycles
+    li      t0, 0x9000
+    sw      s2, 0(t0)           # ram[0x9000] = cycle count  (= ram[9216])
 
     # -----------------------------------------------------------
     # Done
