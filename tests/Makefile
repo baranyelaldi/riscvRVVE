@@ -5,6 +5,7 @@
 #   make NAME.elf           # assemble + auto-disassemble
 #   make run NAME.elf       # build (if stale) + run via testbench; opens GTKWave if not running
 #   make dump NAME.elf      # disassemble a previously built elf
+#   make mem  NAME.elf      # build + convert to .mem for FPGA ($readmemh)
 #   make clean NAME.{s,elf} # remove only this test's elf
 #   make build              # force rebuild of test.x after Verilog/tb edits
 #
@@ -25,11 +26,12 @@ GTKW    := $(TB_DIR)/verilator.gtkw
 
 GCC     := riscv64-unknown-elf-gcc
 OBJDUMP := riscv64-unknown-elf-objdump
+OBJCOPY := riscv64-unknown-elf-objcopy
 
 # --- Two-arg target handling (run/dump/clean take a filename) -------
 # `make run X.elf` is parsed by make as two goals. The second one is
 # turned into a no-op so make doesn't complain that there's no rule.
-TWOARG := run dump clean
+TWOARG := run dump clean mem
 ifneq (,$(filter $(TWOARG),$(firstword $(MAKECMDGOALS))))
   ARGFILE := $(word 2,$(MAKECMDGOALS))
   $(eval $(ARGFILE):;@:)
@@ -54,6 +56,10 @@ run: $(ELF)
 dump: $(ELF)
 	$(OBJDUMP) -d $(ELF)
 
+mem: $(ELF)
+	$(OBJCOPY) -O verilog --verilog-data-width=4 $(ELF) $(patsubst %.elf,%.mem,$(ELF))
+	@echo "--- $(patsubst %.elf,%.mem,$(ELF)) written ---"
+
 clean:
 	rm -f $(ELF)
 
@@ -65,4 +71,4 @@ build:
 	    EXTRA_CFLAGS="-Wno-error -L/usr/lib/x86_64-linux-gnu" \
 	    make -B
 
-.PHONY: run dump clean build
+.PHONY: run dump clean mem build
