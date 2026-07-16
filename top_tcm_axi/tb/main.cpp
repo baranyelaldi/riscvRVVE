@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <signal.h>
+#include <stdio.h>
 
 //--------------------------------------------------------------------
 // Defines
@@ -55,7 +56,22 @@ static void assert_handler(const sc_report& rep, const sc_actions& actions)
 static void exit_override(void)
 {
     if (tb)
+    {
         tb->abort();
+        // Self-check reporter: a self-checking test writes a result word to 0xA000.
+        //   0x600D600D            -> PASS
+        //   0xBAD00000 | idx      -> FAIL at check `idx`
+        //   anything else (e.g. 0) -> test does not self-check, stay silent.
+        // read() returns one byte; assemble the little-endian word.
+        uint32_t r = (uint32_t)tb->read(0xA000)
+                   | ((uint32_t)tb->read(0xA001) << 8)
+                   | ((uint32_t)tb->read(0xA002) << 16)
+                   | ((uint32_t)tb->read(0xA003) << 24);
+        if (r == 0x600D600Du)
+            printf("[SELF-CHECK] PASS\n");
+        else if ((r & 0xFFFF0000u) == 0xBAD00000u)
+            printf("[SELF-CHECK] FAIL at check %u\n", r & 0xFFFFu);
+    }
 }
 //--------------------------------------------------------------------
 // vl_finish: Handling of verilog $finish
