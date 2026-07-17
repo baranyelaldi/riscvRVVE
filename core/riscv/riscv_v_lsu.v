@@ -91,11 +91,10 @@ module riscv_v_lsu
 //-----------------------------------------------------------------
 // Registers
 //-----------------------------------------------------------------
-localparam STATE_IDLE  = 3'd0;
-localparam STATE_REQ   = 3'd1;
-localparam STATE_WAIT  = 3'd2;
-localparam STATE_DONE  = 3'd3;
-localparam STATE_ERROR = 3'd4;
+localparam STATE_IDLE   = 3'd0;
+localparam STATE_ACTIVE = 3'd1;
+localparam STATE_DONE   = 3'd3;
+localparam STATE_ERROR  = 3'd4;
 localparam BEATS = VLEN / 32; // 32 is hardcoded for bus, not for ELEN
 
 
@@ -104,7 +103,9 @@ reg [    31:0] addr_q;
 reg [VLEN-1:0] buffer_q;
 reg [     4:0] vd_idx_q;
 reg            is_load_q;
-reg [$clog2(BEATS):0] beat_q;
+reg [$clog2(BEATS):0] req_beat_q;   // beats requested (accepted by the bus)
+reg [$clog2(BEATS):0] resp_beat_q;  // beats acknowledged (data returned)
+reg            err_seen_q;
 reg [    31:0] stride_q;
 reg            is_strided_q;
 reg [    31:0] vl_q;
@@ -143,8 +144,18 @@ always @* begin
     endcase
 end
 
-// last_beat_w: this beat is the final one for this instruction
-wire last_beat_w = (beat_q == beats_needed_w[$clog2(BEATS):0] - 1'b1);
+//-----------------------------------------------------------------
+// Request / response progress
+//-----------------------------------------------------------------
+// Beats are pipelined: a new request is issued every cycle the bus
+// accepts, without waiting for the previous beat's ack. Acks return
+// in order (dport contract), so a single response counter steers the
+// returning data into the right buffer slot.
+wire [$clog2(BEATS):0] beats_needed_trunc_w = beats_needed_w[$clog2(BEATS):0];
+wire req_pending_w = (req_beat_q  != beats_needed_trunc_w);
+wire req_last_w    = (req_beat_q  == beats_needed_trunc_w - 1'b1);
+wire resp_last_w   = (resp_beat_q == beats_needed_trunc_w - 1'b1);
+wire req_active_w  = (state_q == STATE_ACTIVE) && req_pending_w;
 
 //-----------------------------------------------------------------
 // Next State
@@ -157,20 +168,18 @@ always @* begin
         STATE_IDLE: begin
             if (opcode_valid_i) begin
                 if (vl_i == 32'b0) next_state_r = STATE_DONE;
-                else next_state_r = STATE_REQ;
+                else next_state_r = STATE_ACTIVE;
             end
         end
-        STATE_REQ: begin
-            if (mem_accept_i) next_state_r = STATE_WAIT;
-        end
-        STATE_WAIT: begin
-            if (mem_ack_i) begin
-                if (mem_error_i)
+        STATE_ACTIVE: begin
+            // Leave only on the final ack: every issued beat has returned,
+            // so no response can arrive once busy_o drops (the core steers
+            // accept/ack by busy_o — see riscv_core.v dport mux).
+            if (mem_ack_i && resp_last_w) begin
+                if (mem_error_i || err_seen_q)
                     next_state_r = STATE_ERROR;
-                else if (last_beat_w)
-                    next_state_r = STATE_DONE;
                 else
-                    next_state_r = STATE_REQ;
+                    next_state_r = STATE_DONE;
             end
         end
         STATE_DONE: begin
@@ -193,7 +202,9 @@ always @(posedge clk_i or posedge rst_i) begin
         addr_q       <= 32'b0;
         vd_idx_q     <= 0;
         is_load_q    <= 1'b0;
-        beat_q       <= {$clog2(BEATS)+1{1'b0}};
+        req_beat_q   <= {$clog2(BEATS)+1{1'b0}};
+        resp_beat_q  <= {$clog2(BEATS)+1{1'b0}};
+        err_seen_q   <= 1'b0;
         buffer_q     <= {VLEN{1'b0}};
         stride_q     <= 32'b0;
         is_strided_q <= 1'b0;
@@ -209,7 +220,9 @@ always @(posedge clk_i or posedge rst_i) begin
                     addr_q       <= base_addr_i;
                     vd_idx_q     <= opcode_vd_idx_i;
                     is_load_q    <= !is_store_i;
-                    beat_q       <= {$clog2(BEATS)+1{1'b0}};
+                    req_beat_q   <= {$clog2(BEATS)+1{1'b0}};
+                    resp_beat_q  <= {$clog2(BEATS)+1{1'b0}};
+                    err_seen_q   <= 1'b0;
                     buffer_q     <= is_store_i ? store_data_i : {VLEN{1'b0}};
                     stride_q     <= stride_i;
                     is_strided_q <= is_strided_i;
@@ -218,34 +231,38 @@ always @(posedge clk_i or posedge rst_i) begin
                 end
             end
 
-            STATE_WAIT: begin
-                if (mem_ack_i && !mem_error_i) begin
-                    if (is_load_q) begin
+            STATE_ACTIVE: begin
+                // Request side: advance address on every accepted beat
+                if (req_pending_w && mem_accept_i) begin
+                    req_beat_q <= req_beat_q + 1'b1;
+                    addr_q     <= addr_q + (is_strided_q ? stride_q : 32'd4);
+                end
+                // Response side: capture returning beats in request order.
+                // On error, keep draining acks (busy_o must stay high while
+                // responses are outstanding) and suppress the writeback later.
+                if (mem_ack_i) begin
+                    if (mem_error_i)
+                        err_seen_q <= 1'b1;
+                    else if (is_load_q) begin
                         // Per-byte gated write — on the last beat, only enabled
                         // bytes update; tail bytes stay 0 from IDLE reset.
-                        if (!last_beat_w || last_beat_enables_r[0])
-                            buffer_q[beat_q*32 +  0 +: 8] <= mem_data_rd_i[ 7: 0];
-                        if (!last_beat_w || last_beat_enables_r[1])
-                            buffer_q[beat_q*32 +  8 +: 8] <= mem_data_rd_i[15: 8];
-                        if (!last_beat_w || last_beat_enables_r[2])
-                            buffer_q[beat_q*32 + 16 +: 8] <= mem_data_rd_i[23:16];
-                        if (!last_beat_w || last_beat_enables_r[3])
-                            buffer_q[beat_q*32 + 24 +: 8] <= mem_data_rd_i[31:24];
+                        if (!resp_last_w || last_beat_enables_r[0])
+                            buffer_q[resp_beat_q*32 +  0 +: 8] <= mem_data_rd_i[ 7: 0];
+                        if (!resp_last_w || last_beat_enables_r[1])
+                            buffer_q[resp_beat_q*32 +  8 +: 8] <= mem_data_rd_i[15: 8];
+                        if (!resp_last_w || last_beat_enables_r[2])
+                            buffer_q[resp_beat_q*32 + 16 +: 8] <= mem_data_rd_i[23:16];
+                        if (!resp_last_w || last_beat_enables_r[3])
+                            buffer_q[resp_beat_q*32 + 24 +: 8] <= mem_data_rd_i[31:24];
                     end
-                    beat_q <= beat_q + 1'b1;
-                    addr_q <= addr_q + (is_strided_q ? stride_q : 32'd4);
+                    resp_beat_q <= resp_beat_q + 1'b1;
                 end
             end
 
             STATE_DONE: begin
-                beat_q <= {$clog2(BEATS)+1{1'b0}};
             end
 
             STATE_ERROR: begin
-                beat_q <= {$clog2(BEATS)+1{1'b0}};
-            end
-
-            STATE_REQ: begin
             end
 
             default: ;
@@ -254,11 +271,11 @@ always @(posedge clk_i or posedge rst_i) begin
 end
 
 assign mem_addr_o    = {addr_q[31:2], 2'b00};
-assign mem_data_wr_o = buffer_q[beat_q*32 +: 32];
-assign mem_rd_o      = (state_q == STATE_REQ) &&  is_load_q;
+assign mem_data_wr_o = buffer_q[req_beat_q*32 +: 32];
+assign mem_rd_o      = req_active_w &&  is_load_q;
 // Byte enables: full 4'b1111 except on the last beat (partial last beat)
-assign mem_wr_o      = (state_q == STATE_REQ && !is_load_q)
-                       ? (last_beat_w ? last_beat_enables_r : 4'b1111)
+assign mem_wr_o      = (req_active_w && !is_load_q)
+                       ? (req_last_w ? last_beat_enables_r : 4'b1111)
                        : 4'b0;
 /* verilator lint_off UNSIGNED */
 /* verilator lint_off CMPCONST */
