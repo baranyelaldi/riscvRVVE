@@ -71,6 +71,14 @@ static void exit_override(void)
             printf("[SELF-CHECK] PASS\n");
         else if ((r & 0xFFFF0000u) == 0xBAD00000u)
             printf("[SELF-CHECK] FAIL at check %u\n", r & 0xFFFFu);
+        // Cycle reporter: benchmarks store the kernel cycle count at 0x9000
+        // (see paper_docs/benchmarks.md). Zero -> test doesn't measure cycles.
+        uint32_t c = (uint32_t)tb->read(0x9000)
+                   | ((uint32_t)tb->read(0x9001) << 8)
+                   | ((uint32_t)tb->read(0x9002) << 16)
+                   | ((uint32_t)tb->read(0x9003) << 24);
+        if (c != 0)
+            printf("[CYCLES] %u\n", c);
     }
 }
 //--------------------------------------------------------------------
