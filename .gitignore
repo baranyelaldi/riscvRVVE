@@ -11,3 +11,9 @@ top_tcm_axi/tb/*.vcd
 tests/*.elf
 tests/*.mem
 fpga
+# Verilator coverage artifacts
+top_tcm_axi/tb/*.dat
+top_tcm_axi/tb/cov/
+# stray LaTeX logs (pdflatex run outside paper dir)
+/build.log
+texput.log

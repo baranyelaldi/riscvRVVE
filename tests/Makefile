@@ -71,4 +71,25 @@ build:
 	    EXTRA_CFLAGS="-Wno-error -L/usr/lib/x86_64-linux-gnu" \
 	    make -B
 
-.PHONY: run dump clean mem build
+# Verilator coverage: rebuild the (coverage-instrumented) model, run EVERY test,
+# rename each run's coverage.dat, merge them, and annotate. Produces a line+toggle
+# coverage summary and per-line annotated sources under $(COV_DIR)/annotated/.
+# The model is instrumented because makefile.generate_verilated passes --coverage;
+# each test.x run writes coverage.dat to $(TB_DIR) via exit_override in main.cpp.
+COV_DIR := $(TB_DIR)/cov
+coverage: build
+	@mkdir -p $(COV_DIR)
+	@rm -f $(COV_DIR)/*.dat $(TB_DIR)/coverage.dat
+	@echo "=== running all tests for coverage ==="
+	@for s in $(wildcard *.s); do \
+	  name=$${s%.s}; \
+	  $(GCC) -march=$(ARCH) -mabi=$(ABI) -nostdlib -nostartfiles -Ttext=$(TEXT) -o $$name.elf $$s 2>/dev/null || { echo "  skip (asm fail): $$name"; continue; }; \
+	  (cd $(TB_DIR) && timeout 60 ./build/test.x -f $(CURDIR)/$$name.elf >/dev/null 2>&1); \
+	  if [ -f $(TB_DIR)/coverage.dat ]; then mv $(TB_DIR)/coverage.dat $(COV_DIR)/$$name.dat; echo "  ok:   $$name"; else echo "  none: $$name"; fi; \
+	done
+	@echo "=== merging + annotating ==="
+	@verilator_coverage --write $(COV_DIR)/merged.dat $(COV_DIR)/*.dat
+	@verilator_coverage --annotate $(COV_DIR)/annotated $(COV_DIR)/merged.dat || true
+	@echo "=== annotated sources in $(COV_DIR)/annotated/  (search for '%000000' = uncovered) ==="
+
+.PHONY: run dump clean mem build coverage

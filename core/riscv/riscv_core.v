@@ -732,6 +732,7 @@ u_issue
     ,.fetch_instr_v_lsu_i(fetch_instr_v_lsu_w)
     ,.fetch_instr_is_strided_i(fetch_instr_is_strided_w)
     ,.fetch_instr_vsetvli_i(fetch_instr_vsetvli_w)
+    ,.sew_i(csr_sew_w)
     ,.v_lsu_busy_i(v_lsu_busy_w)
     ,.fetch_instr_rd_valid_i(fetch_instr_rd_valid_w)
     ,.fetch_instr_invalid_i(fetch_instr_invalid_w)
