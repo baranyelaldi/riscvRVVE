@@ -14,7 +14,7 @@ _start:
     csrr    zero, instret       # drain: older instructions retire before the next CSR issues
     csrr    s3, instret         # exact start of the instret window
     csrr    s0, cycle
-    vsetvli t0, x0, e8, m1
+    vsetivli t0, 16, e8, m1      # vl = min(16 input bytes, VLMAX): VLEN-agnostic
     vle8.v  v1, (a0)
 bin_loop:
     vmseq.vx v2, v1, a2

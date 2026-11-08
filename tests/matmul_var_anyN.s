@@ -57,7 +57,7 @@ col_loop:
     # Initialize vector accumulator v3 = {0, 0, 0, 0}
     # Set vl=4 (= VLMAX for e32/m1) so all lanes get zeroed
     # -----------------------------------------------------------
-    li      a5, 4
+    li      a5, 64                       # AVL >= VLMAX for VLEN <= 2048: vl = VLMAX
     vsetvli zero, a5, e32, m1
     vmv.v.x v3, x0
 
@@ -88,7 +88,7 @@ inner_loop:
     # Reduce v3 (4 partial sums) to a single scalar
     # Set vl=4 again — last inner iteration may have left vl<4
     # -----------------------------------------------------------
-    li      a5, 4
+    li      a5, 64                       # AVL >= VLMAX for VLEN <= 2048: vl = VLMAX
     vsetvli zero, a5, e32, m1
     vmv.v.x v0, x0
     vredsum.vs v4, v3, v0

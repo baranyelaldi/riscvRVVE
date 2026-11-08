@@ -47,7 +47,7 @@ row_loop:
     li      t2, 0               # j counter
 
 col_loop:
-    li      a5, 4
+    li      a5, 64                       # AVL >= VLMAX for VLEN <= 2048: vl = VLMAX
     vsetvli zero, a5, e32, m1
     vmv.v.x v3, x0
 
@@ -68,7 +68,7 @@ inner_loop:
     bnez    t3, inner_loop
 
     # reduce v3 to scalar
-    li      a5, 4
+    li      a5, 64                       # AVL >= VLMAX for VLEN <= 2048: vl = VLMAX
     vsetvli zero, a5, e32, m1
     vmv.v.x v0, x0
     vredsum.vs v4, v3, v0
