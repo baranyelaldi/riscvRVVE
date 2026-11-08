@@ -79,6 +79,14 @@ static void exit_override(void)
                    | ((uint32_t)tb->read(0x9003) << 24);
         if (c != 0)
             printf("[CYCLES] %u\n", c);
+        // Instruction reporter: benchmarks store the kernel's retired-instruction
+        // count (instret delta, wrapper overhead removed) at 0x9010.
+        uint32_t n = (uint32_t)tb->read(0x9010)
+                   | ((uint32_t)tb->read(0x9011) << 8)
+                   | ((uint32_t)tb->read(0x9012) << 16)
+                   | ((uint32_t)tb->read(0x9013) << 24);
+        if (n != 0)
+            printf("[INSTRET] %u\n", n);
     }
 }
 //--------------------------------------------------------------------

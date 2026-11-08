@@ -23,6 +23,8 @@ _start:
     # -----------------------------------------------------------
     # Sample cycle counter at the START
     # -----------------------------------------------------------
+    csrr    zero, instret       # drain: older instructions retire before the next CSR issues
+    csrr    s3, instret         # exact start of the instret window
     csrr    s0, cycle               # s0 = start cycle count
 
     # -----------------------------------------------------------
@@ -90,9 +92,13 @@ inner_loop:
     # Sample cycle counter at the END and compute delta
     # -----------------------------------------------------------
     csrr    s1, cycle               # s1 = end cycle count
+    csrr    s4, instret         # exact end (follows a CSR op -> kernel fully retired)
     sub     s2, s1, s0              # s2 = total cycles
     li      t0, 0x9000
     sw      s2, 0(t0)               # ram[0x9000] = cycle count
+    sub     s5, s4, s3          # retired instructions in the window
+    addi    s5, s5, -3          # minus wrapper: instret start read + 2x cycle read
+    sw      s5, 16(t0)          # ram[0x9010] = kernel instret (tb prints [INSTRET])
 
     # Optional: also store start and end for sanity
     sw      s0, 4(t0)               # ram[0x9004] = start

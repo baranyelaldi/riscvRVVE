@@ -16,7 +16,8 @@
 #   make clean vadd.s
 #   make build              # after editing anything under core/ or top_tcm_axi/
 
-ARCH    := rv32iv
+# rv32imv: the core is built with SUPPORT_MULDIV=1 (scalar baselines use mul/div)
+ARCH    := rv32imv
 ABI     := ilp32
 TEXT    := 0x2000
 

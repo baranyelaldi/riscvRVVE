@@ -23,6 +23,8 @@ _start:
     addi    t3, a1, 4
     addi    t4, a2, -2
 
+    csrr    zero, instret       # drain: older instructions retire before the next CSR issues
+    csrr    s3, instret         # exact start of the instret window
     csrr    s0, cycle
 chunk_loop:
     vsetvli a3, t4, e32, m1
@@ -41,9 +43,13 @@ chunk_loop:
     bnez    t4, chunk_loop
 
     csrr    s1, cycle
+    csrr    s4, instret         # exact end (follows a CSR op -> kernel fully retired)
     sub     s2, s1, s0
     li      t0, 0x9000
     sw      s2, 0(t0)
+    sub     s5, s4, s3          # retired instructions in the window
+    addi    s5, s5, -3          # minus wrapper: instret start read + 2x cycle read
+    sw      s5, 16(t0)          # ram[0x9010] = kernel instret (tb prints [INSTRET])
 
     # ===== SELF-CHECK: all 16 output cells =====
     la      t0, expected

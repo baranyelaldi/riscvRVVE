@@ -29,6 +29,8 @@ _start:
     li      a1, 0x4000          # dst
     li      a2, 20              # n = 20 bytes
 
+    csrr    zero, instret       # drain: older instructions retire before the next CSR issues
+    csrr    s3, instret         # exact start of the instret window
     csrr    s0, cycle
 memcpy_loop:
     vsetvli a3, a2, e8, m1
@@ -40,9 +42,13 @@ memcpy_loop:
     bnez    a2, memcpy_loop
 
     csrr    s1, cycle
+    csrr    s4, instret         # exact end (follows a CSR op -> kernel fully retired)
     sub     s2, s1, s0
     li      t0, 0x9000
     sw      s2, 0(t0)
+    sub     s5, s4, s3          # retired instructions in the window
+    addi    s5, s5, -3          # minus wrapper: instret start read + 2x cycle read
+    sw      s5, 16(t0)          # ram[0x9010] = kernel instret (tb prints [INSTRET])
 
     # ===== SELF-CHECK: 5 copied words + 1 untouched sentinel =====
     la      t0, expected
