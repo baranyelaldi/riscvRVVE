@@ -71,6 +71,7 @@ module riscv_csr
     ,input  [  5:0]  csr_writeback_exception_i
     ,input  [ 31:0]  csr_writeback_exception_pc_i
     ,input  [ 31:0]  csr_writeback_exception_addr_i
+    ,input           instr_retire_i
     ,input  [ 31:0]  cpu_id_i
     ,input  [ 31:0]  reset_vector_i
     ,input           interrupt_inhibit_i
@@ -196,6 +197,7 @@ u_csrfile
     ,.exception_i(csr_writeback_exception_i)
     ,.exception_pc_i(csr_writeback_exception_pc_i)
     ,.exception_addr_i(csr_writeback_exception_addr_i)
+    ,.instr_retire_i(instr_retire_i)
 
     ,.v_csr_vl_we_i(v_csr_vl_we_i)
     ,.v_csr_vl_wdata_i(v_csr_vl_wdata_i)

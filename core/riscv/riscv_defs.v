@@ -736,6 +736,11 @@
 `define CSR_MTIME_MASK    32'hFFFFFFFF
 `define CSR_MTIMEH        12'hc81
 `define CSR_MTIMEH_MASK   32'hFFFFFFFF
+// Retired-instruction counter (read-only): user alias + machine CSR
+`define CSR_INSTRET       12'hc02
+`define CSR_INSTRETH      12'hc82
+`define CSR_MINSTRET      12'hb02
+`define CSR_MINSTRETH     12'hb82
 `define CSR_MHARTID       12'hF14
 `define CSR_MHARTID_MASK  32'hFFFFFFFF
 

@@ -169,6 +169,7 @@ module riscv_issue
     ,output [  5:0]  csr_writeback_exception_o
     ,output [ 31:0]  csr_writeback_exception_pc_o
     ,output [ 31:0]  csr_writeback_exception_addr_o
+    ,output          instr_retire_o
     ,output          exec_hold_o
     ,output          mul_hold_o
     ,output          interrupt_inhibit_o
@@ -504,6 +505,11 @@ assign mul_hold_o  = stall_w;
 assign csr_writeback_exception_o      = pipe_exception_wb_w;
 assign csr_writeback_exception_pc_o   = pipe_pc_wb_w;
 assign csr_writeback_exception_addr_o = pipe_result_wb_w;
+
+// instret: an instruction retires when it leaves WB without trapping
+// (valid_wb pulses once per instruction; faulting loads/stores are already
+// squashed in pipe_ctrl, other traps carry a non-zero exception code).
+assign instr_retire_o = pipe_valid_wb_w & ~(|pipe_exception_wb_w);
 
 //-------------------------------------------------------------
 // Blocking events (division, CSR unit access)

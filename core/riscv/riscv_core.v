@@ -117,6 +117,7 @@ wire  [  5:0]  csr_writeback_exception_w;
 wire           fetch_instr_mul_w;
 wire           branch_exec_is_ret_w;
 wire  [ 31:0]  csr_writeback_exception_addr_w;
+wire           instr_retire_w;
 wire  [  3:0]  mmu_lsu_wr_w;
 wire           fetch_in_fault_w;
 wire           branch_request_w;
@@ -606,6 +607,7 @@ u_csr
     ,.csr_writeback_exception_i(csr_writeback_exception_w)
     ,.csr_writeback_exception_pc_i(csr_writeback_exception_pc_w)
     ,.csr_writeback_exception_addr_i(csr_writeback_exception_addr_w)
+    ,.instr_retire_i(instr_retire_w)
     ,.cpu_id_i(cpu_id_i)
     ,.reset_vector_i(reset_vector_i)
     ,.interrupt_inhibit_i(interrupt_inhibit_w)
@@ -828,6 +830,7 @@ u_issue
     ,.csr_writeback_exception_o(csr_writeback_exception_w)
     ,.csr_writeback_exception_pc_o(csr_writeback_exception_pc_w)
     ,.csr_writeback_exception_addr_o(csr_writeback_exception_addr_w)
+    ,.instr_retire_o(instr_retire_w)
     ,.exec_hold_o(exec_hold_w)
     ,.mul_hold_o(mul_hold_w)
     ,.interrupt_inhibit_o(interrupt_inhibit_w)

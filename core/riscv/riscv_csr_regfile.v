@@ -64,6 +64,9 @@ module riscv_csr_regfile
     ,input [31:0]    exception_pc_i
     ,input [31:0]    exception_addr_i
 
+    // One pulse per retired instruction (instret)
+    ,input           instr_retire_i
+
     ,input           v_csr_vl_we_i
     ,input [31:0]    v_csr_vl_wdata_i
     ,input           v_csr_vtype_we_i
@@ -110,6 +113,8 @@ reg [31:0]  csr_mie_q;
 reg [1:0]   csr_mpriv_q;
 reg [31:0]  csr_mcycle_q;
 reg [31:0]  csr_mcycle_h_q;
+reg [31:0]  csr_minstret_q;
+reg [31:0]  csr_minstret_h_q;
 reg [31:0]  csr_mscratch_q;
 reg [31:0]  csr_mtval_q;
 reg [31:0]  csr_mtimecmp_q;
@@ -203,6 +208,10 @@ begin
     `CSR_MCYCLE,
     `CSR_MTIME:    rdata_r = csr_mcycle_q;
     `CSR_MTIMEH:   rdata_r = csr_mcycle_h_q;
+    `CSR_INSTRET,
+    `CSR_MINSTRET: rdata_r = csr_minstret_q;
+    `CSR_INSTRETH,
+    `CSR_MINSTRETH:rdata_r = csr_minstret_h_q;
     `CSR_MHARTID:  rdata_r = cpu_id_i;
     `CSR_MISA:     rdata_r = misa_i;
     `CSR_MEDELEG:  rdata_r = SUPPORT_SUPER ? (csr_medeleg_q & `CSR_MEDELEG_MASK) : 32'b0;
@@ -522,6 +531,8 @@ begin
     csr_mpriv_q        <= `PRIV_MACHINE;
     csr_mcycle_q       <= 32'b0;
     csr_mcycle_h_q     <= 32'b0;
+    csr_minstret_q     <= 32'b0;
+    csr_minstret_h_q   <= 32'b0;
     csr_mscratch_q     <= 32'b0;
     csr_mtimecmp_q     <= 32'b0;
     csr_mtime_ie_q     <= 1'b0;
@@ -571,6 +582,14 @@ begin
     // Increment upper cycle counter on lower 32-bit overflow
     if (csr_mcycle_q == 32'hFFFFFFFF)
         csr_mcycle_h_q <= csr_mcycle_h_q + 32'd1;
+
+    // Retired-instruction counter (64-bit, read-only)
+    if (instr_retire_i)
+    begin
+        csr_minstret_q <= csr_minstret_q + 32'd1;
+        if (csr_minstret_q == 32'hFFFFFFFF)
+            csr_minstret_h_q <= csr_minstret_h_q + 32'd1;
+    end
 
     if (v_csr_vl_we_i) csr_vl_q <= v_csr_vl_wdata_i;
     if (v_csr_vtype_we_i) csr_vtype_q <= v_csr_vtype_wdata_i;
