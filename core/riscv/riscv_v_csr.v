@@ -117,9 +117,10 @@ always @* begin
     else                    new_vl = (avl < vlmax) ? avl : vlmax;
 end
 
+// RVV 1.0: an unsupported vtype sets vill and clears all other vtype bits (and vl = 0)
 wire [31:0] new_vtype = vtype_valid
                       ? {24'b0, vtypei[7:0]}
-                      : (32'h80000000 | {24'b0, vtypei[7:0]});       // bit 31 = vill
+                      : 32'h80000000;                                // bit 31 = vill
 
 reg        wb_valid_q;
 reg [31:0] wb_vl_q;
