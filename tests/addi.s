@@ -5,3 +5,8 @@ _start:
     addi    t0, zero, 0x123      # t0 ← 0x123
     addi    t1, zero, 0x456      # t1 ← 0x456
     add     t2, t0, t1           # t2 ← 0x579
+
+    # ---- clean exit via the sim_exit backdoor ----
+    li      a0, 0
+    csrw    dscratch, a0
+1:  j       1b
