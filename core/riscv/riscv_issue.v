@@ -341,13 +341,16 @@ end
 
 wire v_fwd_vs1_w = is_vv_w && v_writeback_valid_i && (v_writeback_vd_idx_i == issue_ra_idx_w);
 wire v_fwd_vs2_w = v_writeback_valid_i && (v_writeback_vd_idx_i == issue_rb_idx_w);
+// vd is read on the third port (vmacc accumulator): forward it like vs1/vs2, or a
+// vmacc right after a write to the same register reads the stale value.
+wire v_fwd_vd_w  = v_writeback_valid_i && (v_writeback_vd_idx_i == issue_rd_idx_w);
 
 wire [VLEN-1:0] v_operand_vs1_pre_fwd_w = is_vv_w ? v_ra0_value_w : is_vx_w ? v_scalar_broadcast_w : v_imm_broadcast_w;
 wire [VLEN-1:0] v_operand_vs2_pre_fwd_w = v_rb0_value_w;
 
 assign v_operand_vs1_o = v_fwd_vs1_w ? v_writeback_value_i : v_operand_vs1_pre_fwd_w;
 assign v_operand_vs2_o = v_fwd_vs2_w ? v_writeback_value_i : v_operand_vs2_pre_fwd_w;
-assign v_operand_vd_o  = v_ra1_value_w;
+assign v_operand_vd_o  = v_fwd_vd_w  ? v_writeback_value_i : v_ra1_value_w;
 
 //-------------------------------------------------------------
 // V-LSU Operand Selection

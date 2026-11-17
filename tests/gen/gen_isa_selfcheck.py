@@ -263,7 +263,32 @@ def build_alu():
     for op, forms in ALU_FORMS.items():
         if "vv" in forms.split():
             alu_case(t, op, "vv", 16)
+    hazard_cases(t)
     t.write()
+
+def hazard_cases(t):
+    """vmacc reads vd as its accumulator: it must see a vd written by the
+    instruction directly before it (forwarded, not read stale from the regfile)."""
+    d = DATA[32]; vl, w = d["vl"], 32
+    A, B = d["A"][:vl], d["B"][:vl]
+    t.begin("hazard: vadd.vv v3 then vmacc.vv v3 back-to-back (e32)")
+    la, lb, le = t.label("a"), t.label("b"), t.label("exp")
+    t.words(la, pack(A, w)); t.words(lb, pack(B, w))
+    t.setvl(32, vl); t.load("v2", la, 32); t.load("v1", lb, 32)
+    t.code += ["    vadd.vv  v3, v2, v1", "    vmacc.vv v3, v1, v2"]      # adjacent on purpose
+    t.words(le, pack([(a + b) + b * a for a, b in zip(A, B)], w))
+    t.check_vreg("v3", 32, vl * w // 32, le)
+
+    d = DATA[8]; vl, w = d["vl"], 8
+    A = d["A"][:vl]; x, y = 0x105, 0x1F3                         # truncate to 0x05, 0xF3
+    t.begin("hazard: vmv.v.x v3 then vmacc.vx v3 back-to-back (e8)")
+    la, le = t.label("a"), t.label("exp")
+    t.words(la, pack(A, w))
+    t.setvl(8, vl); t.load("v2", la, 8)
+    t.code += [f"    li      a3, 0x{x:X}", f"    li      a4, 0x{y:X}",
+               "    vmv.v.x  v3, a3", "    vmacc.vx v3, a4, v2"]         # adjacent on purpose
+    t.words(le, pack([scalar_to_sew(x, w) + scalar_to_sew(y, w) * a for a in A], w))
+    t.check_vreg("v3", 8, vl * w // 32, le)
 
 def build_mask():
     t = TestFile("isa_mask_selfcheck",
