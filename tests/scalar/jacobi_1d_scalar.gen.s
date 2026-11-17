@@ -1,6 +1,6 @@
 	.file	"jacobi_1d_scalar.c"
 	.option nopic
-	.attribute arch, "rv32i2p1_m2p0_zicsr2p0"
+	.attribute arch, "rv32i2p1_m2p0_zicsr2p0_zmmul1p0"
 	.attribute unaligned_access, 0
 	.attribute stack_align, 16
 	.text
@@ -30,8 +30,8 @@ main:
 	bleu	a2,a4,.L2
 	slli	a1,a1,2
 	add	a1,a1,a5
-	addi	a2,a3,4
 	addi	a1,a1,-8
+	addi	a2,a3,4
 .L3:
 	lw	a4,0(a5)
 	lw	a6,4(a5)
@@ -45,40 +45,39 @@ main:
 .L2:
  #APP
 # 29 "jacobi_1d_scalar.c" 1
-	csrr a5, cycle
-	csrr a2, instret
+	csrr a2, cycle
+	csrr a5, instret
 # 0 "" 2
  #NO_APP
-	li	a4,36864
-	sub	a5,a5,t1
-	sub	a2,a2,a7
-	sw	a5,0(a4)
 	li	a1,36864
-	addi	a2,a2,-3
+	sub	a2,a2,t1
+	sub	a5,a5,a7
+	addi	a5,a5,-3
 	lui	a4,%hi(.LANCHOR0)
-	mv	a5,a3
-	addi	a4,a4,%lo(.LANCHOR0)
-	li	a3,0
+	sw	a2,0(a1)
+	sw	a5,16(a1)
 	li	a0,16
-	sw	a2,16(a1)
+	mv	a5,a3
+	addi	a3,a4,%lo(.LANCHOR0)
+	li	a4,0
 .L6:
 	lw	a1,0(a5)
-	lw	a2,0(a4)
+	lw	a2,0(a3)
 	addi	a5,a5,4
-	addi	a4,a4,4
+	addi	a3,a3,4
 	bne	a1,a2,.L10
-	addi	a3,a3,1
-	bne	a3,a0,.L6
-	li	a3,1611489280
-	addi	a3,a3,13
+	addi	a4,a4,1
+	bne	a4,a0,.L6
+	li	a4,1611489280
+	addi	a4,a4,13
 .L5:
 	li	a5,40960
-	sw	a3,0(a5)
+	sw	a4,0(a5)
 	li	a0,0
 	ret
 .L10:
 	li	a5,-1160773632
-	or	a3,a3,a5
+	or	a4,a4,a5
 	j	.L5
 	.size	main, .-main
 	.section	.rodata
@@ -103,4 +102,5 @@ expected:
 	.word	420
 	.word	450
 	.word	0
-	.ident	"GCC: (13.2.0-11ubuntu1+12) 13.2.0"
+	.ident	"GCC: (g6afcc4f6d) 16.1.0"
+	.section	.note.GNU-stack,"",@progbits

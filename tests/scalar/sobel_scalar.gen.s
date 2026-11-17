@@ -1,6 +1,6 @@
 	.file	"sobel_scalar.c"
 	.option nopic
-	.attribute arch, "rv32i2p1_m2p0_zicsr2p0"
+	.attribute arch, "rv32i2p1_m2p0_zicsr2p0_zmmul1p0"
 	.attribute unaligned_access, 0
 	.attribute stack_align, 16
 	.text
@@ -27,8 +27,8 @@ main:
  #NO_APP
 	beq	a6,zero,.L2
 	slli	a6,a6,2
-	mv	a0,t5
 	add	a6,a6,a3
+	mv	a0,t5
 .L3:
 	lw	a5,8(a1)
 	lw	a4,0(a1)
@@ -59,13 +59,12 @@ main:
 	li	a2,36864
 	sub	a3,a3,t0
 	sub	a5,a5,t6
-	sw	a3,0(a2)
 	addi	a5,a5,-3
-	li	a4,36864
-	sw	a5,16(a4)
-	lw	a3,0(t5)
+	sw	a3,0(a2)
+	sw	a5,16(a2)
+	lw	a4,0(t5)
 	li	a5,240
-	bne	a3,a5,.L6
+	bne	a4,a5,.L6
 	lw	a5,4(t5)
 	li	a4,80
 	bne	a5,a4,.L7
@@ -97,4 +96,5 @@ main:
 	li	a5,3
 	j	.L4
 	.size	main, .-main
-	.ident	"GCC: (13.2.0-11ubuntu1+12) 13.2.0"
+	.ident	"GCC: (g6afcc4f6d) 16.1.0"
+	.section	.note.GNU-stack,"",@progbits

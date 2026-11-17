@@ -1,6 +1,6 @@
 	.file	"pathfinder_scalar.c"
 	.option nopic
-	.attribute arch, "rv32i2p1_m2p0_zicsr2p0"
+	.attribute arch, "rv32i2p1_m2p0_zicsr2p0_zmmul1p0"
 	.attribute unaligned_access, 0
 	.attribute stack_align, 16
 	.text
@@ -25,11 +25,11 @@ main:
  #NO_APP
 	beq	a1,zero,.L2
 	slli	a1,a1,2
-	mv	a2,a6
 	add	a1,a1,a4
+	mv	a2,a6
 .L5:
-	lw	a5,4(a4)
 	lw	a0,8(a4)
+	lw	a5,4(a4)
 	bleu	a5,a0,.L3
 	mv	a5,a0
 .L3:
@@ -54,13 +54,12 @@ main:
 	li	a2,36864
 	sub	a3,a3,t1
 	sub	a5,a5,a7
-	sw	a3,0(a2)
 	addi	a5,a5,-3
-	li	a4,36864
-	sw	a5,16(a4)
+	sw	a3,0(a2)
+	sw	a5,16(a2)
 	lw	a5,0(a6)
-	li	a3,6
-	bne	a5,a3,.L8
+	li	a4,6
+	bne	a5,a4,.L8
 	lw	a4,4(a6)
 	li	a3,7
 	bne	a4,a3,.L9
@@ -91,4 +90,5 @@ main:
 	li	a5,3
 	j	.L6
 	.size	main, .-main
-	.ident	"GCC: (13.2.0-11ubuntu1+12) 13.2.0"
+	.ident	"GCC: (g6afcc4f6d) 16.1.0"
+	.section	.note.GNU-stack,"",@progbits

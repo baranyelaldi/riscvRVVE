@@ -3,7 +3,7 @@
 # Baseline policy (state this in the paper):
 #   * Same input data, output location, and self-check as the vector test.
 #   * Natural scalar algorithm for the same result, written in freestanding C
-#     and compiled by GCC -O2 for rv32im (the core has a hardware multiplier).
+#     and compiled by GCC 16.1 -O2 for rv32im (the core has a hardware multiplier).
 #     A compiler-generated baseline avoids "hand-written slow baseline" doubts.
 #   * Measured with the same instret/cycle wrapper as the vector tests
 #     (bench.h), reported by the testbench as [CYCLES] / [INSTRET].
@@ -13,7 +13,18 @@
 #   make run NAME=memcpy      # run NAME_scalar.elf through the testbench
 #   make clean
 
-CC      := riscv64-unknown-elf-gcc
+# Paper numbers use GCC 16.1.0 (riscv-collab/riscv-gnu-toolchain release
+# 2026.10.29, riscv32-elf-ubuntu-24.04-gcc). Put its bin/ on PATH, or run
+#   make CC=/path/to/riscv32-unknown-elf-gcc
+# Another GCC version can generate different code and different cycle counts.
+# (make predefines CC=cc, so '?=' would never apply; override the built-in only)
+ifeq ($(origin CC),default)
+CC      := riscv32-unknown-elf-gcc
+endif
+CC_MAJOR := $(shell $(CC) -dumpversion 2>/dev/null | cut -d. -f1)
+ifneq ($(CC_MAJOR),16)
+$(warning $(CC) is GCC '$(CC_MAJOR)', not 16: results will not match the paper)
+endif
 # zicsr: GCC 13 lists the CSR instructions (cycle/instret reads) separately;
 # the vector tests get it implicitly from V. Same RV32IM core ISA.
 ARCH    := rv32im_zicsr

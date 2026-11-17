@@ -1,6 +1,6 @@
 	.file	"matmul_n32_scalar.c"
 	.option nopic
-	.attribute arch, "rv32i2p1_m2p0_zicsr2p0"
+	.attribute arch, "rv32i2p1_m2p0_zicsr2p0_zmmul1p0"
 	.attribute unaligned_access, 0
 	.attribute stack_align, 16
 	.text
@@ -28,14 +28,14 @@ main:
  #NO_APP
 	li	s0,0
 	addi	a0,t5,128
-	li	t2,0
+	li	t0,0
 	li	t4,4096
 	li	s3,1024
 .L2:
-	slli	t3,t2,2
-	mv	t0,t6
-	add	a7,s0,t6
+	slli	t3,t0,2
 	add	t3,t3,t5
+	mv	t2,t6
+	add	a7,t6,s0
 	li	a6,0
 .L4:
 	add	a3,t1,a6
@@ -53,44 +53,40 @@ main:
 	addi	a6,a6,128
 	addi	a7,a7,4
 	bne	a6,t4,.L4
-	addi	t2,t2,32
+	addi	t0,t0,32
 	addi	s0,s0,128
 	addi	a0,a5,128
-	bne	t2,s3,.L2
+	bne	t0,s3,.L2
  #APP
 # 35 "matmul_n32_scalar.c" 1
-	csrr a4, cycle
+	csrr a3, cycle
 	csrr a5, instret
 # 0 "" 2
  #NO_APP
 	li	a2,36864
-	sub	a4,a4,s2
+	sub	a3,a3,s2
 	sub	a5,a5,s1
-	sw	a4,0(a2)
-	li	a3,36864
 	addi	a5,a5,-3
-	li	a0,-32
+	sw	a3,0(a2)
 	li	a4,32
-	li	t1,0
-	li	t3,32
-	sw	a5,16(a3)
+	sw	a5,16(a2)
+	mv	a6,a4
+	li	a1,0
 .L6:
 	addi	a5,a4,-32
-	mv	a2,t0
-	mv	a3,a4
+	mv	a2,a4
+	mv	a3,t2
 	j	.L9
 .L7:
-	beq	a5,a4,.L16
-.L9:
-	lw	a6,0(a2)
-	add	a3,a3,a4
-	add	a7,a3,a0
-	mv	a1,a5
-	addi	a2,a2,4
 	addi	a5,a5,1
-	beq	a7,a6,.L7
-	li	a5,-1160773632
-	or	a5,a1,a5
+	add	a2,a2,a4
+	beq	a4,a5,.L16
+.L9:
+	lw	a0,0(a3)
+	addi	a3,a3,4
+	beq	a0,a2,.L7
+	li	a4,-1160773632
+	or	a5,a5,a4
 .L8:
 	lw	s0,12(sp)
 	li	a4,40960
@@ -102,13 +98,13 @@ main:
 	addi	sp,sp,16
 	jr	ra
 .L16:
-	addi	t1,t1,1
-	addi	t0,t0,128
-	addi	a4,a5,32
-	addi	a0,a0,-32
-	bne	t1,t3,.L6
+	addi	a1,a1,1
+	addi	a4,a4,32
+	addi	t2,t2,128
+	bne	a1,a6,.L6
 	li	a5,1611489280
 	addi	a5,a5,13
 	j	.L8
 	.size	main, .-main
-	.ident	"GCC: (13.2.0-11ubuntu1+12) 13.2.0"
+	.ident	"GCC: (g6afcc4f6d) 16.1.0"
+	.section	.note.GNU-stack,"",@progbits

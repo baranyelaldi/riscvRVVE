@@ -1,6 +1,6 @@
 	.file	"histogram_scalar.c"
 	.option nopic
-	.attribute arch, "rv32i2p1_m2p0_zicsr2p0"
+	.attribute arch, "rv32i2p1_m2p0_zicsr2p0_zmmul1p0"
 	.attribute unaligned_access, 0
 	.attribute stack_align, 16
 	.text
@@ -9,10 +9,10 @@
 	.globl	main
 	.type	main, @function
 main:
-	lui	a5,%hi(hist_len)
-	lw	a1,%lo(hist_len)(a5)
-	lui	a4,%hi(hist_data)
+	lui	a4,%hi(hist_len)
+	lw	a1,%lo(hist_len)(a4)
 	lui	a5,%hi(hist_bins)
+	lui	a4,%hi(hist_data)
 	lw	a3,%lo(hist_bins)(a5)
 	addi	a4,a4,%lo(hist_data)
 	li	a2,16384
@@ -25,12 +25,12 @@ main:
  #NO_APP
 	beq	a3,zero,.L2
 	slli	a3,a3,2
-	mv	a5,a2
 	add	a3,a3,a2
+	mv	a5,a2
 .L3:
 	sw	zero,0(a5)
 	addi	a5,a5,4
-	bne	a5,a3,.L3
+	bne	a3,a5,.L3
 .L2:
 	beq	a1,zero,.L4
 	add	a1,a1,a4
@@ -53,19 +53,18 @@ main:
 	li	a1,36864
 	sub	a3,a3,a6
 	sub	a5,a5,a0
-	sw	a3,0(a1)
 	addi	a5,a5,-3
-	li	a4,36864
-	sw	a5,16(a4)
-	lw	a3,0(a2)
-	li	a5,2
-	bne	a3,a5,.L8
+	sw	a3,0(a1)
+	sw	a5,16(a1)
+	lw	a5,0(a2)
+	li	a4,2
+	bne	a5,a4,.L8
 	lw	a4,4(a2)
-	li	a5,4
-	bne	a4,a5,.L9
-	lw	a3,8(a2)
-	li	a5,6
-	bne	a3,a5,.L10
+	li	a3,4
+	bne	a4,a3,.L9
+	lw	a1,8(a2)
+	li	a3,6
+	bne	a1,a3,.L6
 	lw	a3,12(a2)
 	li	a5,1611489280
 	addi	a5,a5,13
@@ -84,11 +83,9 @@ main:
 .L9:
 	li	a5,1
 	j	.L6
-.L10:
-	li	a5,2
-	j	.L6
 .L21:
 	li	a5,3
 	j	.L6
 	.size	main, .-main
-	.ident	"GCC: (13.2.0-11ubuntu1+12) 13.2.0"
+	.ident	"GCC: (g6afcc4f6d) 16.1.0"
+	.section	.note.GNU-stack,"",@progbits
