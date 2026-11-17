@@ -8,8 +8,9 @@ top_tcm_axi/tb/obj/
 top_tcm_axi/tb/obj_verilated/
 top_tcm_axi/tb/verilated/
 top_tcm_axi/tb/*.vcd
-tests/*.elf
-tests/*.mem
+# build outputs of tests/Makefile (any subfolder, e.g. tests/uart/)
+tests/**/*.elf
+tests/**/*.mem
 fpga
 # Verilator coverage artifacts
 top_tcm_axi/tb/*.dat

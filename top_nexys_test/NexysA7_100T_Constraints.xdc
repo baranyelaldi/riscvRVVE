@@ -10,3 +10,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports rst_n]
 # UART TX (FPGA → PC)
 set_property PACKAGE_PIN D4 [get_ports uart_tx]
 set_property IOSTANDARD LVCMOS33 [get_ports uart_tx]
+
+# UART RX (PC → FPGA) - Nexys A7 UART_TXD_IN
+set_property PACKAGE_PIN C4 [get_ports uart_rx]
+set_property IOSTANDARD LVCMOS33 [get_ports uart_rx]

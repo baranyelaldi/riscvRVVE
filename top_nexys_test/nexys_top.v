@@ -1,15 +1,23 @@
 // Nexys A7 100T top-level wrapper for riscv_tcm_top.
 //
-// - TCM load port (axi_t_*) is tied off - program is pre-loaded into BRAM
-//   at synthesis time via $readmemh in tcm_mem_ram.v.
+// - Program loading: the BRAM is pre-loaded at synthesis time via $readmemh in
+//   tcm_mem_ram.v (default program). A new program can be loaded at run time
+//   over the UART with tools/load.py: uart_rx -> uart_loader -> TCM load port
+//   (axi_t_*), with the CPU held in reset during the transfer.
 // - Peripheral port (axi_i_*) is connected to a UART TX at 0x8000_0000,
 //   matching the sim_putc convention used by assembly tests.
 // - CPU stalls on UART writes when the transmitter is busy (no byte is dropped).
 module nexys_top
+#(
+     // UART settings shared by TX and RX (clk_50 actually runs at 25 MHz, see clk_wiz_0)
+     parameter UART_CLK_FREQ  = 25_000_000
+    ,parameter UART_BAUD_RATE = 115_200
+)
 (
      input  clk       // 100 MHz, pin E3
     ,input  rst_n     // active-low CPU reset button, pin C2
     ,output uart_tx   // USB-UART TX to PC, pin D4
+    ,input  uart_rx   // USB-UART RX from PC, pin C4
 );
 
 wire clk_50;
@@ -18,13 +26,23 @@ wire locked;
 clk_wiz_0 u_clk
 (
      .clk_in1  (clk)      // 100 MHz from pin E3
-     
+
     ,.clk_out1 (clk_50)   // 50 MHz to CPU
     ,.locked   (locked)   // high when clock is stable
 );
 
-// Hold CPU in reset until clock is locked
-wire rst_int = (~rst_n) | (~locked);
+// -----------------------------------------------------------------------
+// Resets
+//   rst_board : button or clock not locked - resets everything incl. loader
+//   rst_int   : core + memory/peripheral interfaces (also pulsed by loader)
+//   rst_cpu   : CPU only (also held by the loader during a transfer)
+// -----------------------------------------------------------------------
+wire loader_sys_rst;
+wire loader_cpu_hold;
+
+wire rst_board = (~rst_n) | (~locked);
+wire rst_int   = rst_board | loader_sys_rst;
+wire rst_cpu   = rst_int   | loader_cpu_hold;
 
 // -----------------------------------------------------------------------
 // Wires from riscv_tcm_top peripheral master port
@@ -118,23 +136,34 @@ end
 // -----------------------------------------------------------------------
 // riscv_tcm_top instance
 // -----------------------------------------------------------------------
+wire        axi_t_awvalid;
+wire [31:0] axi_t_awaddr;
+wire        axi_t_wvalid;
+wire [31:0] axi_t_wdata;
+wire        axi_t_awready;
+wire        axi_t_wready;
+wire        axi_t_bvalid;
+
 riscv_tcm_top u_core
 (
      .clk_i     (clk_50)
     ,.rst_i     (rst_int)
-    ,.rst_cpu_i (rst_int)
+    ,.rst_cpu_i (rst_cpu)
 
-    // TCM load port - tied off, BRAM is pre-initialised at synthesis
-    ,.axi_t_awvalid_i (1'b0)
-    ,.axi_t_awaddr_i  (32'b0)
+    // TCM load port - single-beat writes from the UART loader (no reads)
+    ,.axi_t_awvalid_i (axi_t_awvalid)
+    ,.axi_t_awaddr_i  (axi_t_awaddr)
     ,.axi_t_awid_i    (4'b0)
-    ,.axi_t_awlen_i   (8'b0)
-    ,.axi_t_awburst_i (2'b0)
-    ,.axi_t_wvalid_i  (1'b0)
-    ,.axi_t_wdata_i   (32'b0)
-    ,.axi_t_wstrb_i   (4'b0)
-    ,.axi_t_wlast_i   (1'b0)
+    ,.axi_t_awlen_i   (8'b0)        // 1 beat per burst
+    ,.axi_t_awburst_i (2'b01)       // INCR
+    ,.axi_t_wvalid_i  (axi_t_wvalid)
+    ,.axi_t_wdata_i   (axi_t_wdata)
+    ,.axi_t_wstrb_i   (4'b1111)
+    ,.axi_t_wlast_i   (1'b1)
     ,.axi_t_bready_i  (1'b1)
+    ,.axi_t_awready_o (axi_t_awready)
+    ,.axi_t_wready_o  (axi_t_wready)
+    ,.axi_t_bvalid_o  (axi_t_bvalid)
     ,.axi_t_arvalid_i (1'b0)
     ,.axi_t_araddr_i  (32'b0)
     ,.axi_t_arid_i    (4'b0)
@@ -166,8 +195,8 @@ riscv_tcm_top u_core
 // -----------------------------------------------------------------------
 uart_tx
 #(
-     .CLK_FREQ  (25_000_000)
-    ,.BAUD_RATE (115_200)
+     .CLK_FREQ  (UART_CLK_FREQ)
+    ,.BAUD_RATE (UART_BAUD_RATE)
 )
 u_uart
 (
@@ -177,6 +206,52 @@ u_uart
     ,.valid_i (uart_valid_q)
     ,.ready_o (uart_ready)
     ,.tx_o    (uart_tx)
+);
+
+// -----------------------------------------------------------------------
+// UART RX instance
+// -----------------------------------------------------------------------
+wire [7:0] uart_rx_data;
+wire       uart_rx_valid;   // one-cycle pulse per received byte
+wire       uart_rx_error;   // one-cycle pulse on a framing error
+
+uart_rx
+#(
+     .CLK_FREQ  (UART_CLK_FREQ)
+    ,.BAUD_RATE (UART_BAUD_RATE)
+)
+u_uart_rx
+(
+     .clk_i   (clk_50)
+    ,.rst_i   (rst_board)
+    ,.rx_i    (uart_rx)
+    ,.data_o  (uart_rx_data)
+    ,.valid_o (uart_rx_valid)
+    ,.error_o (uart_rx_error)
+);
+
+// -----------------------------------------------------------------------
+// UART program loader -> TCM load port
+// -----------------------------------------------------------------------
+uart_loader
+#(
+     .TIMEOUT_CYCLES (UART_CLK_FREQ / 10)   // 100 ms without a byte aborts a load
+)
+u_loader
+(
+     .clk_i         (clk_50)
+    ,.rst_i         (rst_board)
+    ,.rx_data_i     (uart_rx_data)
+    ,.rx_valid_i    (uart_rx_valid)
+    ,.sys_rst_o     (loader_sys_rst)
+    ,.cpu_hold_o    (loader_cpu_hold)
+    ,.axi_awvalid_o (axi_t_awvalid)
+    ,.axi_awaddr_o  (axi_t_awaddr)
+    ,.axi_wvalid_o  (axi_t_wvalid)
+    ,.axi_wdata_o   (axi_t_wdata)
+    ,.axi_awready_i (axi_t_awready)
+    ,.axi_wready_i  (axi_t_wready)
+    ,.axi_bvalid_i  (axi_t_bvalid)
 );
 
 endmodule
